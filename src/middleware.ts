@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth";
 
 // Public paths that don't require authentication
-const PUBLIC_PATHS = ["/login", "/api/auth/login"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/api/auth/login",
+  "/api/seed",
+  "/api/seed-admin",
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
