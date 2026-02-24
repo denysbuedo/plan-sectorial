@@ -79,6 +79,10 @@ export default function StudentList() {
   const [studentsRefresh, setStudentsRefresh] = useState(0);
   const [unisRefresh, setUnisRefresh] = useState(0);
 
+  // Multi-select state
+  const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
+  const [bajaLoading, setBajaLoading] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -91,6 +95,8 @@ export default function StudentList() {
       if (!cancelled) {
         setStudents(Array.isArray(data) ? data : []);
         setLoading(false);
+        // Clear selection when list changes
+        setSelectedDocs(new Set());
       }
     }
     load();
@@ -129,6 +135,37 @@ export default function StudentList() {
     setSyncing(false);
   };
 
+  const handleSyncSelected = async () => {
+    if (selectedDocs.size === 0) return;
+    setSyncing(true);
+    setSyncMsg("");
+    const res = await fetch("/api/students/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ documents: Array.from(selectedDocs) }),
+    });
+    const data = await res.json();
+    setSyncMsg(data.message || "Sincronización completada");
+    setStudentsRefresh((n) => n + 1);
+    setSyncing(false);
+  };
+
+  const handleBajaSelected = async () => {
+    if (selectedDocs.size === 0) return;
+    if (!confirm(`¿Dar de baja a ${selectedDocs.size} estudiante(s)?`)) return;
+    setBajaLoading(true);
+    setSyncMsg("");
+    const res = await fetch("/api/students", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ documents: Array.from(selectedDocs), state: "baja" }),
+    });
+    const data = await res.json();
+    setSyncMsg(data.message || "Baja aplicada");
+    setStudentsRefresh((n) => n + 1);
+    setBajaLoading(false);
+  };
+
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddError("");
@@ -151,6 +188,33 @@ export default function StudentList() {
       setAddForm({ docType: "1", document: "", fullname: "", entity: "" });
       setStudentsRefresh((n) => n + 1);
     }
+  };
+
+  // Selection helpers
+  const allVisibleDocs = students.map((s) => s.document);
+  const allSelected =
+    allVisibleDocs.length > 0 &&
+    allVisibleDocs.every((d) => selectedDocs.has(d));
+  const someSelected = selectedDocs.size > 0;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedDocs(new Set());
+    } else {
+      setSelectedDocs(new Set(allVisibleDocs));
+    }
+  };
+
+  const toggleSelect = (doc: string) => {
+    setSelectedDocs((prev) => {
+      const next = new Set(prev);
+      if (next.has(doc)) {
+        next.delete(doc);
+      } else {
+        next.add(doc);
+      }
+      return next;
+    });
   };
 
   const totalStudents = students.length;
@@ -186,10 +250,10 @@ export default function StudentList() {
           </button>
           <button
             onClick={handleSyncAll}
-            disabled={syncing}
+            disabled={syncing || bajaLoading}
             className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
           >
-            {syncing ? "Sincronizando..." : "↻ Sincronizar con ETECSA"}
+            {syncing && !someSelected ? "Sincronizando..." : "↻ Sincronizar todos"}
           </button>
           {universities.length === 0 && (
             <button
@@ -207,6 +271,35 @@ export default function StudentList() {
           </span>
         )}
       </div>
+
+      {/* Bulk actions bar — shown when items are selected */}
+      {someSelected && (
+        <div className="flex flex-wrap gap-3 items-center bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+          <span className="text-sm font-medium text-blue-800">
+            {selectedDocs.size} estudiante{selectedDocs.size !== 1 ? "s" : ""} seleccionado{selectedDocs.size !== 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={handleSyncSelected}
+            disabled={syncing || bajaLoading}
+            className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
+          >
+            {syncing ? "Sincronizando..." : "↻ Sincronizar seleccionados"}
+          </button>
+          <button
+            onClick={handleBajaSelected}
+            disabled={syncing || bajaLoading}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {bajaLoading ? "Procesando..." : "✕ Dar de baja"}
+          </button>
+          <button
+            onClick={() => setSelectedDocs(new Set())}
+            className="px-3 py-2 text-sm text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
+          >
+            Deseleccionar
+          </button>
+        </div>
+      )}
 
       {/* Add Student Form */}
       {showAddForm && (
@@ -327,6 +420,11 @@ export default function StudentList() {
             Estudiantes{" "}
             <span className="text-gray-400 font-normal">({totalStudents})</span>
           </h2>
+          {someSelected && (
+            <span className="text-xs text-blue-600 font-medium">
+              {selectedDocs.size} seleccionado{selectedDocs.size !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
 
         {loading ? (
@@ -341,6 +439,15 @@ export default function StudentList() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
+                  <th className="px-4 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                      title="Seleccionar todos"
+                    />
+                  </th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Documento</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Universidad</th>
@@ -351,8 +458,21 @@ export default function StudentList() {
               <tbody className="divide-y divide-gray-50">
                 {students.map((student) => {
                   const stateInfo = STATE_LABELS[student.state] || { label: student.state, color: "bg-gray-100 text-gray-700" };
+                  const isSelected = selectedDocs.has(student.document);
                   return (
-                    <tr key={student.document} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={student.document}
+                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${isSelected ? "bg-blue-50" : ""}`}
+                      onClick={() => toggleSelect(student.document)}
+                    >
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(student.document)}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         <div className="font-mono text-gray-800">{student.document}</div>
                         <div className="text-xs text-gray-400">{DOC_TYPE_LABELS[student.docType] || "—"}</div>

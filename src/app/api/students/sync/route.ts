@@ -1,17 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { students } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { analyzeStudent } from "@/lib/etecsa";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { document: singleDoc } = body;
+    const { document: singleDoc, documents: docArray } = body;
 
-    // Get students to sync - either a single one or all active ones
+    // Get students to sync:
+    // - documents: string[] → sync those specific students
+    // - document: string   → sync a single student (legacy)
+    // - (none)             → sync all active students
     let studentsToSync;
-    if (singleDoc) {
+    if (docArray && Array.isArray(docArray) && docArray.length > 0) {
+      studentsToSync = await db
+        .select()
+        .from(students)
+        .where(inArray(students.document, docArray));
+    } else if (singleDoc) {
       studentsToSync = await db
         .select()
         .from(students)

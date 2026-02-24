@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { students, universities } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
@@ -92,6 +92,48 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json(
       { error: "Failed to create student", details: msg },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/students
+ * Bulk update state for multiple students
+ * Body: { documents: string[], state: "active" | "baja" | "error" }
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { documents: docArray, state } = body;
+
+    if (!docArray || !Array.isArray(docArray) || docArray.length === 0) {
+      return NextResponse.json(
+        { error: "documents must be a non-empty array" },
+        { status: 400 }
+      );
+    }
+
+    if (!state || !["active", "baja", "error"].includes(state)) {
+      return NextResponse.json(
+        { error: "state must be one of: active, baja, error" },
+        { status: 400 }
+      );
+    }
+
+    await db
+      .update(students)
+      .set({ state, updatedAt: new Date() })
+      .where(inArray(students.document, docArray));
+
+    return NextResponse.json({
+      message: `Updated ${docArray.length} students to state: ${state}`,
+      documents: docArray,
+      state,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to update students", details: String(error) },
       { status: 500 }
     );
   }

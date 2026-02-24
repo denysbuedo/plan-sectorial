@@ -22,6 +22,11 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - [x] Sync with ETECSA button to update holder/plan status
 - [x] Stats dashboard (total, active, holders, configured)
 - [x] 23 Cuban universities seeded via `/api/seed`
+- [x] Multi-select checkboxes in student table
+- [x] "Sincronizar seleccionados" bulk sync action
+- [x] "Dar de baja" bulk state change action
+- [x] PATCH `/api/students` bulk state update endpoint
+- [x] PATCH `/api/students/[document]` single student state update endpoint
 
 ## Current Structure
 
