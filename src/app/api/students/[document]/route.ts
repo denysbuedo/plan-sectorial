@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { students } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 export async function PATCH(
   request: NextRequest,
@@ -27,9 +28,10 @@ export async function PATCH(
     const result = await db
       .update(students)
       .set({ state, updatedAt: new Date() })
-      .where(eq(students.document, document));
+      .where(eq(students.document, document))
+      .returning({ document: students.document });
 
-    if (!result) {
+    if (!result.length) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 

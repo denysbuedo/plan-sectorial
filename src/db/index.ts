@@ -1,4 +1,6 @@
-import { createDatabase } from "@kilocode/app-builder-db";
+import { drizzle } from "drizzle-orm/bun-sqlite";
 import * as schema from "./schema";
+import { Database } from "bun:sqlite";
 
-export const db = createDatabase(schema);
+const sqlite = new Database("local.db");
+export const db = drizzle(sqlite, { schema });
