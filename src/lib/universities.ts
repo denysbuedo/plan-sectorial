@@ -1,0 +1,27 @@
+export const UNIVERSITIES = [
+  { code: "50601", name: "Universidad de Ciencias Informáticas", shortName: "UCI" },
+  { code: "50602", name: "Universidad de la Habana", shortName: "UH" },
+  { code: "50603", name: "Universidad Tecnológica de La Habana José Antonio Echeverría", shortName: "CUJAE" },
+  { code: "50604", name: "Universidad de Oriente", shortName: "UO" },
+  { code: "50605", name: "Universidad Central Marta Abreu de Las Villas", shortName: "UCLV" },
+  { code: "50606", name: "Universidad Agraria de La Habana Fructuoso Rodríguez Pérez", shortName: "UNAH" },
+  { code: "50607", name: "Universidad de Pinar del Río Hermanos Saiz Montes de Oca", shortName: "UPR" },
+  { code: "50608", name: "Universidad de Ciencias de la Cultura Física y el Deporte Manuel Fajardo", shortName: "UCCFD" },
+  { code: "50610", name: "Universidad de Cienfuegos Carlos Rafael Rodríguez", shortName: "UCf" },
+  { code: "50611", name: "Universidad de Camagüey Ignacio Agramonte Loynaz", shortName: "UC" },
+  { code: "50612", name: "Universidad de Ciencias Pedagógicas Enrique José Varona", shortName: "UCPEJV" },
+  { code: "50613", name: "Universidad de Guantánamo", shortName: "UG" },
+  { code: "50614", name: "Universidad de Las Tunas", shortName: "ULT" },
+  { code: "50615", name: "Universidad de Holguín", shortName: "UHo" },
+  { code: "50616", name: "Universidad de las Artes", shortName: "ISA" },
+  { code: "50618", name: "Instituto de Relaciones Internacionales", shortName: "ISRI" },
+  { code: "50621", name: "Universidad de Artemisa Julio Díaz González", shortName: "UA" },
+  { code: "50622", name: "Universidad de Matanzas", shortName: "UM" },
+  { code: "50623", name: "Universidad de Ciego de Ávila Máximo Gómez Báez", shortName: "UNICA" },
+  { code: "50624", name: "Universidad de Sancti Spíritus José Martí Pérez", shortName: "UNISS" },
+  { code: "50625", name: "Universidad de Granma", shortName: "UDG" },
+  { code: "50626", name: "Universidad de la Isla de la Juventud Jesús Montané Oropesa", shortName: "UIJ" },
+  { code: "50642", name: "Universidad de Moa Dr. Antonio Núñez Jiménez", shortName: "UMoa" },
+] as const;
+
+export type UniversityCode = typeof UNIVERSITIES[number]["code"];
