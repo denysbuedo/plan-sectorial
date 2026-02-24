@@ -94,6 +94,8 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   // Multi-select state
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
   const [bajaLoading, setBajaLoading] = useState(false);
+  const [altaLoading, setAltaLoading] = useState(false);
+  const [bajaEtecsaLoading, setBajaEtecsaLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,6 +178,41 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     setSyncMsg(data.message || "Baja aplicada");
     setStudentsRefresh((n) => n + 1);
     setBajaLoading(false);
+  };
+
+  // Register (ALTA) selected students in ETECSA
+  const handleAltaSelected = async () => {
+    if (selectedDocs.size === 0) return;
+    setAltaLoading(true);
+    setSyncMsg("");
+    const res = await fetch("/api/students/alta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ documents: Array.from(selectedDocs) }),
+    });
+    const data = await res.json();
+    const successCount = data.results?.filter((r: any) => r.status === "registered" || r.status === "registered_pending").length || 0;
+    setSyncMsg(`Registrados ${successCount}/${selectedDocs.size} estudiantes en ETECSA`);
+    setStudentsRefresh((n) => n + 1);
+    setAltaLoading(false);
+  };
+
+  // Deregister (BAJA) selected students from ETECSA
+  const handleBajaEtecsaSelected = async () => {
+    if (selectedDocs.size === 0) return;
+    if (!confirm(`¿Dar de baja en ETECSA a ${selectedDocs.size} estudiante(s)? Esto también los marcará como baja en el sistema.`)) return;
+    setBajaEtecsaLoading(true);
+    setSyncMsg("");
+    const res = await fetch("/api/students/baja", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ documents: Array.from(selectedDocs), setLocalBaja: true }),
+    });
+    const data = await res.json();
+    const successCount = data.results?.filter((r: any) => r.status === "deregistered").length || 0;
+    setSyncMsg(`Dados de baja ${successCount}/${selectedDocs.size} estudiantes en ETECSA`);
+    setStudentsRefresh((n) => n + 1);
+    setBajaEtecsaLoading(false);
   };
 
   const handleAddStudent = async (e: React.FormEvent) => {
@@ -305,7 +342,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
               </button>
               <button
                 onClick={handleSyncAll}
-                disabled={syncing || bajaLoading}
+                disabled={syncing || bajaLoading || altaLoading || bajaEtecsaLoading}
                 className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
               >
                 {syncing && !someSelected ? "Sincronizando..." : "↻ Sincronizar todos"}
@@ -344,17 +381,31 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
             <>
               <button
                 onClick={handleSyncSelected}
-                disabled={syncing || bajaLoading}
+                disabled={syncing || bajaLoading || altaLoading || bajaEtecsaLoading}
                 className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
               >
                 {syncing ? "Sincronizando..." : "↻ Sincronizar seleccionados"}
               </button>
               <button
+                onClick={handleAltaSelected}
+                disabled={altaLoading || syncing || bajaEtecsaLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {altaLoading ? "Registrando..." : "✓ Registrar en ETECSA"}
+              </button>
+              <button
+                onClick={handleBajaEtecsaSelected}
+                disabled={bajaEtecsaLoading || syncing || altaLoading}
+                className="px-4 py-2 bg-red-700 text-white rounded-lg text-sm font-medium hover:bg-red-800 transition-colors disabled:opacity-50"
+              >
+                {bajaEtecsaLoading ? "Dando de baja..." : "✕ Dar de baja en ETECSA"}
+              </button>
+              <button
                 onClick={handleBajaSelected}
-                disabled={syncing || bajaLoading}
+                disabled={syncing || bajaLoading || altaLoading || bajaEtecsaLoading}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
               >
-                {bajaLoading ? "Procesando..." : "✕ Dar de baja"}
+                {bajaLoading ? "Procesando..." : "✕ Solo baja local"}
               </button>
             </>
           )}

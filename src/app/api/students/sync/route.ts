@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { students } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
-import { analyzeStudent } from "@/lib/etecsa";
+import { analyzeStudent, altaStudent } from "@/lib/etecsa";
 
 export async function POST(request: NextRequest) {
   const role = request.headers.get("x-user-role") || "";
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { document: singleDoc, documents: docArray } = body;
+    const { document: singleDoc, documents: docArray, autoRegister = false } = body;
 
     // Get students to sync:
     // - documents: string[] → sync those specific students
@@ -42,33 +42,52 @@ export async function POST(request: NextRequest) {
     for (const student of studentsToSync) {
       const analysis = await analyzeStudent(student.document, student.docType);
 
-      if (!analysis) {
+      if (!analysis.success || !analysis.data) {
         results.push({
           document: student.document,
           status: "error",
-          message: "Could not reach ETECSA API",
+          message: analysis.error || "Could not reach ETECSA API",
         });
         continue;
+      }
+
+      // Auto-register (ALTA) if not configured and autoRegister is enabled
+      let registrationResult = null;
+      if (!analysis.data.isConfigured && autoRegister) {
+        registrationResult = await altaStudent({
+          docType: student.docType,
+          document: student.document,
+          entity: student.entity,
+        });
+
+        // Re-analyze after registration attempt
+        if (registrationResult.success) {
+          const reAnalysis = await analyzeStudent(student.document, student.docType);
+          if (reAnalysis.success && reAnalysis.data) {
+            analysis.data = reAnalysis.data;
+          }
+        }
       }
 
       // Update student with ETECSA data
       await db
         .update(students)
         .set({
-          isClient: analysis.isClient,
-          hasMobileSubscriptionsActive: analysis.hasMobileSubscriptionsActive,
-          isChannelConfirmed: analysis.isChannelConfirmed,
-          isChannelConfigured: analysis.isChannelConfigured,
-          isConfigured: analysis.isConfigured,
-          isHolder: analysis.hasMobileSubscriptionsActive,
+          isClient: analysis.data.isClient,
+          hasMobileSubscriptionsActive: analysis.data.hasMobileSubscriptionsActive,
+          isChannelConfirmed: analysis.data.isChannelConfirmed,
+          isChannelConfigured: analysis.data.isChannelConfigured,
+          isConfigured: analysis.data.isConfigured,
+          isHolder: analysis.data.hasMobileSubscriptionsActive,
           updatedAt: new Date(),
         })
         .where(eq(students.document, student.document));
 
       results.push({
         document: student.document,
-        status: "synced",
-        data: analysis,
+        status: analysis.data.isConfigured ? "synced" : "not_configured",
+        data: analysis.data,
+        registered: registrationResult ? registrationResult.success : undefined,
       });
     }
 

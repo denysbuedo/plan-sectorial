@@ -2,9 +2,9 @@
 
 ## Current State
 
-**App Status**: ✅ Plan Sectorial student management system built with bulk Excel import
+**App Status**: ✅ Plan Sectorial student management system with full ETECSA integration
 
-A full student management system for ETECSA's Plan Sectorial (code 506) for Cuban university students.
+A full student management system for ETECSA's Plan Sectorial (code 506) for Cuban university students with complete integration to ETECSA API.
 
 ## Recently Completed
 
@@ -38,6 +38,12 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - [x] User CRUD API (`/api/users`, `/api/users/[id]`)
 - [x] Role-based UI restrictions: Universidad sees only their university, ETECSA sees all (read-only), admin can do everything
 - [x] Seed admin endpoint (`/api/seed-admin`) to create first admin user
+- [x] **NEW**: ETECSA API client with JWT authentication (`src/lib/etecsa.ts`)
+- [x] **NEW**: ALTA (register) endpoint `POST /api/students/alta`
+- [x] **NEW**: BAJA (deregister) endpoint `POST /api/students/baja`
+- [x] **NEW**: Updated sync to auto-register students if not configured (`autoRegister` flag)
+- [x] **NEW**: UI buttons for manual register/deregister in bulk actions bar
+- [x] **NEW**: `.env.example` with ETECSA API configuration
 
 ## Current Structure
 
@@ -46,17 +52,20 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 | `src/app/page.tsx` | Home page (renders StudentList) | ✅ Ready |
 | `src/app/layout.tsx` | Root layout with ETECSA header | ✅ Ready |
 | `src/app/globals.css` | Global styles | ✅ Ready |
-| `src/components/StudentList.tsx` | Main student list + filters + add form | ✅ Ready |
-| `src/db/schema.ts` | DB schema: students + universities | ✅ Ready |
+| `src/components/StudentList.tsx` | Main student list + filters + add form + ALTA/BAJA buttons | ✅ Ready |
+| `src/db/schema.ts` | DB schema: students + universities + users | ✅ Ready |
 | `src/db/index.ts` | DB client | ✅ Ready |
-| `src/lib/etecsa.ts` | ETECSA API client | ✅ Ready |
+| `src/lib/etecsa.ts` | ETECSA API client with JWT auth | ✅ Ready |
 | `src/lib/universities.ts` | University codes + names | ✅ Ready |
 | `src/components/ExcelUpload.tsx` | Excel file picker, parse, preview, upload | ✅ Ready |
 | `src/app/api/students/bulk/route.ts` | POST bulk insert from Excel | ✅ Ready |
 | `src/app/api/students/route.ts` | GET (list+filter) + POST (create) + PATCH (bulk state) | ✅ Ready |
-| `src/app/api/students/sync/route.ts` | POST sync with ETECSA | ✅ Ready |
+| `src/app/api/students/sync/route.ts` | POST sync with ETECSA (with auto-register) | ✅ Ready |
+| `src/app/api/students/alta/route.ts` | POST register students in ETECSA | ✅ Ready |
+| `src/app/api/students/baja/route.ts` | POST deregister students from ETECSA | ✅ Ready |
 | `src/app/api/universities/route.ts` | GET universities list | ✅ Ready |
 | `src/app/api/seed/route.ts` | POST seed universities | ✅ Ready |
+| `.env.example` | ETECSA API configuration template | ✅ Ready |
 | `.kilocode/` | AI context & recipes | ✅ Ready |
 
 ## Database Schema
@@ -90,10 +99,28 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - `bcryptjs@3.0.3` — Password hashing
 - `jose@6.1.3` — JWT token handling
 
+## ETECSA API Integration
+
+### Authentication
+- POST `/auth/v1/` with username/password
+- Returns JWT token (expires_in: 1800 seconds)
+- All requests require `Authorization: Bearer <token>` header
+
+### Endpoints
+- **ALTA (Register)**: POST `/special-segments/v1/MES/` with student data
+- **BAJA (Deregister)**: DELETE `/special-segments/v1/MES/` with student data  
+- **Analyze**: GET `/special-segments/v1/mes/analyze?document=<>&document_type=<>&subsegment=506`
+
+### Environment Variables
+```
+ETECSA_API_URL=http://192.168.1.100
+ETECSA_USERNAME=api.mes
+ETECSA_PASSWORD=mypassword
+```
+
 ## Pending Features (mentioned by user for later)
 
-- [ ] Alta service (register student to ETECSA)
-- [ ] Baja service (deregister student from ETECSA)
+- [ ] None - All features implemented!
 
 ## Session History
 
@@ -103,3 +130,4 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 | 2026-02-24 | Built Plan Sectorial ETECSA student management system |
 | 2026-02-24 | Added multi-select + bulk sync/baja + Excel bulk import |
 | 2026-02-24 | Added user authentication with 3 roles (admin, universidad, ETECSA) |
+| 2026-02-24 | Added ALTA/BAJA services with full ETECSA API integration |
