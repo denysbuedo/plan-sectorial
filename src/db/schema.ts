@@ -1,5 +1,19 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
+// Roles: admin (full access), universidad (read-only own university), etecsa (read-only all)
+export const users = sqliteTable("users", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(), // bcrypt hash
+  role: text("role").notNull().default("universidad"), // admin | universidad | etecsa
+  entity: text("entity"), // FK to universities.code — only for role=universidad
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
 export const universities = sqliteTable("universities", {
   code: text("code").primaryKey(),
   name: text("name").notNull(),

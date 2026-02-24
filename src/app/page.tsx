@@ -1,15 +1,14 @@
+import { getSession } from "@/lib/auth";
 import StudentList from "@/components/StudentList";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getSession();
+
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Gestión de Estudiantes</h2>
-        <p className="text-gray-500 text-sm mt-1">
-          Administra el registro de estudiantes universitarios en el Plan Sectorial de ETECSA (código 506)
-        </p>
-      </div>
-      <StudentList />
-    </div>
+    <StudentList
+      userRole={session?.role ?? "etecsa"}
+      userEntity={session?.entity ?? null}
+      username={session?.username ?? ""}
+    />
   );
 }

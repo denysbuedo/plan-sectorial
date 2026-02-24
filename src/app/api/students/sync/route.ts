@@ -5,6 +5,12 @@ import { eq, inArray } from "drizzle-orm";
 import { analyzeStudent } from "@/lib/etecsa";
 
 export async function POST(request: NextRequest) {
+  const role = request.headers.get("x-user-role") || "";
+  // Only admin can sync
+  if (role !== "admin") {
+    return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+  }
+
   try {
     const body = await request.json().catch(() => ({}));
     const { document: singleDoc, documents: docArray } = body;

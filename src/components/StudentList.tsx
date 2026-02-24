@@ -60,10 +60,19 @@ function StatusBadge({ value, label }: { value: boolean | null; label: string })
   );
 }
 
-export default function StudentList() {
+interface StudentListProps {
+  userRole: string;
+  userEntity: string | null;
+  username: string;
+}
+
+export default function StudentList({ userRole, userEntity }: StudentListProps) {
+  const isAdmin = userRole === "admin";
+  const isReadOnly = userRole === "etecsa" || userRole === "universidad";
+
   const [students, setStudents] = useState<Student[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
-  const [filterEntity, setFilterEntity] = useState("");
+  const [filterEntity, setFilterEntity] = useState(userRole === "universidad" && userEntity ? userEntity : "");
   const [filterState, setFilterState] = useState("");
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -279,34 +288,43 @@ export default function StudentList() {
 
       {/* Actions bar */}
       <div className="flex flex-wrap gap-3 items-center justify-between bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => { setShowAddForm(!showAddForm); setShowExcelUpload(false); }}
-            className="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors"
-          >
-            {showAddForm ? "Cancelar" : "+ Agregar Estudiante"}
-          </button>
-          <button
-            onClick={() => { setShowExcelUpload(!showExcelUpload); setShowAddForm(false); }}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-          >
-            {showExcelUpload ? "Cancelar" : "📥 Importar Excel"}
-          </button>
-          <button
-            onClick={handleSyncAll}
-            disabled={syncing || bajaLoading}
-            className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
-          >
-            {syncing && !someSelected ? "Sincronizando..." : "↻ Sincronizar todos"}
-          </button>
-          {universities.length === 0 && (
-            <button
-              onClick={handleSeedUniversities}
-              disabled={seeding}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
-            >
-              {seeding ? "Cargando..." : "Cargar Universidades"}
-            </button>
+        <div className="flex flex-wrap gap-3 items-center">
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => { setShowAddForm(!showAddForm); setShowExcelUpload(false); }}
+                className="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors"
+              >
+                {showAddForm ? "Cancelar" : "+ Agregar Estudiante"}
+              </button>
+              <button
+                onClick={() => { setShowExcelUpload(!showExcelUpload); setShowAddForm(false); }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+              >
+                {showExcelUpload ? "Cancelar" : "📥 Importar Excel"}
+              </button>
+              <button
+                onClick={handleSyncAll}
+                disabled={syncing || bajaLoading}
+                className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
+              >
+                {syncing && !someSelected ? "Sincronizando..." : "↻ Sincronizar todos"}
+              </button>
+              {universities.length === 0 && (
+                <button
+                  onClick={handleSeedUniversities}
+                  disabled={seeding}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  {seeding ? "Cargando..." : "Cargar Universidades"}
+                </button>
+              )}
+            </>
+          )}
+          {isReadOnly && (
+            <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full border border-gray-200">
+              {userRole === "etecsa" ? "👁 Solo lectura" : "👁 Vista de tu universidad"}
+            </span>
           )}
         </div>
         {syncMsg && (
@@ -322,20 +340,24 @@ export default function StudentList() {
           <span className="text-sm font-medium text-blue-800">
             {selectedDocs.size} estudiante{selectedDocs.size !== 1 ? "s" : ""} seleccionado{selectedDocs.size !== 1 ? "s" : ""}
           </span>
-          <button
-            onClick={handleSyncSelected}
-            disabled={syncing || bajaLoading}
-            className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
-          >
-            {syncing ? "Sincronizando..." : "↻ Sincronizar seleccionados"}
-          </button>
-          <button
-            onClick={handleBajaSelected}
-            disabled={syncing || bajaLoading}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
-          >
-            {bajaLoading ? "Procesando..." : "✕ Dar de baja"}
-          </button>
+          {isAdmin && (
+            <>
+              <button
+                onClick={handleSyncSelected}
+                disabled={syncing || bajaLoading}
+                className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
+              >
+                {syncing ? "Sincronizando..." : "↻ Sincronizar seleccionados"}
+              </button>
+              <button
+                onClick={handleBajaSelected}
+                disabled={syncing || bajaLoading}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {bajaLoading ? "Procesando..." : "✕ Dar de baja"}
+              </button>
+            </>
+          )}
           <button
             onClick={handleExportExcel}
             className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
@@ -351,8 +373,8 @@ export default function StudentList() {
         </div>
       )}
 
-      {/* Add Student Form */}
-      {showAddForm && (
+      {/* Add Student Form — admin only */}
+      {isAdmin && showAddForm && (
         <div className="bg-white rounded-lg border border-gray-200 p-5">
           <h2 className="text-base font-semibold text-gray-800 mb-4">Agregar Nuevo Estudiante</h2>
           <form onSubmit={handleAddStudent} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -421,8 +443,8 @@ export default function StudentList() {
         </div>
       )}
 
-      {/* Excel Upload Panel */}
-      {showExcelUpload && (
+      {/* Excel Upload Panel — admin only */}
+      {isAdmin && showExcelUpload && (
         <div className="bg-white rounded-lg border border-indigo-200 p-5">
           <h2 className="text-base font-semibold text-gray-800 mb-4">📥 Importar Estudiantes desde Excel</h2>
           <ExcelUpload onSuccess={() => setStudentsRefresh((n) => n + 1)} />
@@ -434,18 +456,25 @@ export default function StudentList() {
         <div className="flex flex-wrap gap-4 items-end">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Filtrar por Universidad</label>
-            <select
-              value={filterEntity}
-              onChange={(e) => setFilterEntity(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
-            >
-              <option value="">Todas las universidades</option>
-              {universities.map((u) => (
-                <option key={u.code} value={u.code}>
-                  {u.shortName} – {u.name}
-                </option>
-              ))}
-            </select>
+            {userRole === "universidad" ? (
+              // Universidad role: locked to their own university
+              <div className="border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-700 min-w-[200px]">
+                {universities.find((u) => u.code === userEntity)?.shortName || userEntity || "—"}
+              </div>
+            ) : (
+              <select
+                value={filterEntity}
+                onChange={(e) => setFilterEntity(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+              >
+                <option value="">Todas las universidades</option>
+                {universities.map((u) => (
+                  <option key={u.code} value={u.code}>
+                    {u.shortName} – {u.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Filtrar por Estado</label>
@@ -460,7 +489,7 @@ export default function StudentList() {
               <option value="error">Error</option>
             </select>
           </div>
-          {(filterEntity || filterState) && (
+          {(filterEntity || filterState) && userRole !== "universidad" && (
             <button
               onClick={() => { setFilterEntity(""); setFilterState(""); }}
               className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

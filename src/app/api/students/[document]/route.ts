@@ -7,6 +7,11 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ document: string }> }
 ) {
+  const role = request.headers.get("x-user-role") || "";
+  if (role !== "admin") {
+    return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+  }
+
   try {
     const { document } = await params;
     const body = await request.json();

@@ -3,14 +3,29 @@ import { db } from "@/db";
 import { students, universities } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 
+function getRequestUser(request: NextRequest) {
+  return {
+    role: request.headers.get("x-user-role") || "",
+    entity: request.headers.get("x-user-entity") || null,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
+    const { role, entity: userEntity } = getRequestUser(request);
     const { searchParams } = new URL(request.url);
     const entity = searchParams.get("entity");
     const state = searchParams.get("state");
 
     const conditions = [];
-    if (entity) conditions.push(eq(students.entity, entity));
+
+    // Role: universidad → only see their own university
+    if (role === "universidad" && userEntity) {
+      conditions.push(eq(students.entity, userEntity));
+    } else if (entity) {
+      conditions.push(eq(students.entity, entity));
+    }
+
     if (state) conditions.push(eq(students.state, state));
 
     const rows = await db
@@ -45,6 +60,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const { role } = getRequestUser(request);
+  // Only admin can create students
+  if (role !== "admin") {
+    return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const { docType, document, fullname, entity } = body;
@@ -103,6 +124,12 @@ export async function POST(request: NextRequest) {
  * Body: { documents: string[], state: "active" | "baja" | "error" }
  */
 export async function PATCH(request: NextRequest) {
+  const { role } = getRequestUser(request);
+  // Only admin can change student state
+  if (role !== "admin") {
+    return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
+  }
+
   try {
     const body = await request.json();
     const { documents: docArray, state } = body;
