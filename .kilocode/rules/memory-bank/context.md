@@ -29,6 +29,7 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - [x] PATCH `/api/students/[document]` single student state update endpoint
 - [x] Excel bulk import: `xlsx` library, `POST /api/students/bulk` endpoint, `ExcelUpload` component
 - [x] "📥 Importar Excel" button in actions bar, collapsible panel with preview + result
+- [x] Excel export: "📤 Exportar" button in table header (exports filtered results) and in bulk actions bar (exports selected students)
 
 ## Current Structure
 
