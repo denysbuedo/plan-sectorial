@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
 import ExcelUpload from "./ExcelUpload";
 
 interface University {
@@ -192,6 +193,41 @@ export default function StudentList() {
     }
   };
 
+  // Export to Excel
+  const handleExportExcel = () => {
+    // Determine which students to export
+    const toExport =
+      someSelected
+        ? students.filter((s) => selectedDocs.has(s.document))
+        : students;
+
+    if (toExport.length === 0) return;
+
+    const rows = toExport.map((s) => ({
+      tipo_doc: s.docType,
+      documento: s.document,
+      nombre_completo: s.fullname,
+      entidad: s.entity,
+      universidad: s.universityShortName || s.entity,
+      estado: STATE_LABELS[s.state]?.label || s.state,
+      propietario: s.isHolder === null ? "" : s.isHolder ? "Sí" : "No",
+      cliente: s.isClient === null ? "" : s.isClient ? "Sí" : "No",
+      linea_activa: s.hasMobileSubscriptionsActive === null ? "" : s.hasMobileSubscriptionsActive ? "Sí" : "No",
+      canal_confirmado: s.isChannelConfirmed === null ? "" : s.isChannelConfirmed ? "Sí" : "No",
+      plan_configurado: s.isConfigured === null ? "" : s.isConfigured ? "Sí" : "No",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Estudiantes");
+
+    const filename = someSelected
+      ? `estudiantes_seleccionados_${toExport.length}.xlsx`
+      : `estudiantes_${filterEntity || "todos"}_${filterState || "todos"}.xlsx`;
+
+    XLSX.writeFile(wb, filename);
+  };
+
   // Selection helpers
   const allVisibleDocs = students.map((s) => s.document);
   const allSelected =
@@ -299,6 +335,12 @@ export default function StudentList() {
             className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
           >
             {bajaLoading ? "Procesando..." : "✕ Dar de baja"}
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+          >
+            📤 Exportar seleccionados
           </button>
           <button
             onClick={() => setSelectedDocs(new Set())}
@@ -436,11 +478,22 @@ export default function StudentList() {
             Estudiantes{" "}
             <span className="text-gray-400 font-normal">({totalStudents})</span>
           </h2>
-          {someSelected && (
-            <span className="text-xs text-blue-600 font-medium">
-              {selectedDocs.size} seleccionado{selectedDocs.size !== 1 ? "s" : ""}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {someSelected && (
+              <span className="text-xs text-blue-600 font-medium">
+                {selectedDocs.size} seleccionado{selectedDocs.size !== 1 ? "s" : ""}
+              </span>
+            )}
+            {students.length > 0 && (
+              <button
+                onClick={handleExportExcel}
+                className="px-3 py-1.5 bg-teal-600 text-white rounded-lg text-xs font-medium hover:bg-teal-700 transition-colors"
+                title={someSelected ? "Exportar seleccionados" : "Exportar resultados del filtro"}
+              >
+                📤 {someSelected ? `Exportar ${selectedDocs.size} seleccionados` : "Exportar resultados"}
+              </button>
+            )}
+          </div>
         </div>
 
         {loading ? (
