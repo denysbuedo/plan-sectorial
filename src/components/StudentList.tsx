@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import ExcelUpload from "./ExcelUpload";
 
 interface University {
   code: string;
@@ -67,6 +68,7 @@ export default function StudentList() {
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showExcelUpload, setShowExcelUpload] = useState(false);
   const [addForm, setAddForm] = useState({
     docType: "1",
     document: "",
@@ -243,10 +245,16 @@ export default function StudentList() {
       <div className="flex flex-wrap gap-3 items-center justify-between bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() => { setShowAddForm(!showAddForm); setShowExcelUpload(false); }}
             className="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors"
           >
             {showAddForm ? "Cancelar" : "+ Agregar Estudiante"}
+          </button>
+          <button
+            onClick={() => { setShowExcelUpload(!showExcelUpload); setShowAddForm(false); }}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+          >
+            {showExcelUpload ? "Cancelar" : "📥 Importar Excel"}
           </button>
           <button
             onClick={handleSyncAll}
@@ -368,6 +376,14 @@ export default function StudentList() {
               {addSuccess && <span className="text-sm text-green-600">{addSuccess}</span>}
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Excel Upload Panel */}
+      {showExcelUpload && (
+        <div className="bg-white rounded-lg border border-indigo-200 p-5">
+          <h2 className="text-base font-semibold text-gray-800 mb-4">📥 Importar Estudiantes desde Excel</h2>
+          <ExcelUpload onSuccess={() => setStudentsRefresh((n) => n + 1)} />
         </div>
       )}
 

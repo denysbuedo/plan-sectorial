@@ -2,7 +2,7 @@
 
 ## Current State
 
-**App Status**: ✅ Plan Sectorial student management system built
+**App Status**: ✅ Plan Sectorial student management system built with bulk Excel import
 
 A full student management system for ETECSA's Plan Sectorial (code 506) for Cuban university students.
 
@@ -27,6 +27,8 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - [x] "Dar de baja" bulk state change action
 - [x] PATCH `/api/students` bulk state update endpoint
 - [x] PATCH `/api/students/[document]` single student state update endpoint
+- [x] Excel bulk import: `xlsx` library, `POST /api/students/bulk` endpoint, `ExcelUpload` component
+- [x] "📥 Importar Excel" button in actions bar, collapsible panel with preview + result
 
 ## Current Structure
 
@@ -40,7 +42,9 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 | `src/db/index.ts` | DB client | ✅ Ready |
 | `src/lib/etecsa.ts` | ETECSA API client | ✅ Ready |
 | `src/lib/universities.ts` | University codes + names | ✅ Ready |
-| `src/app/api/students/route.ts` | GET (list+filter) + POST (create) | ✅ Ready |
+| `src/components/ExcelUpload.tsx` | Excel file picker, parse, preview, upload | ✅ Ready |
+| `src/app/api/students/bulk/route.ts` | POST bulk insert from Excel | ✅ Ready |
+| `src/app/api/students/route.ts` | GET (list+filter) + POST (create) + PATCH (bulk state) | ✅ Ready |
 | `src/app/api/students/sync/route.ts` | POST sync with ETECSA | ✅ Ready |
 | `src/app/api/universities/route.ts` | GET universities list | ✅ Ready |
 | `src/app/api/seed/route.ts` | POST seed universities | ✅ Ready |
@@ -63,6 +67,10 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - `isClient`, `hasMobileSubscriptionsActive`, `isChannelConfirmed`, `isChannelConfigured`, `isConfigured`: ETECSA status fields
 - `createdAt`, `updatedAt`
 
+## Tech Dependencies Added
+
+- `xlsx@0.18.5` — Excel parsing (client-side via FileReader + XLSX.read)
+
 ## Pending Features (mentioned by user for later)
 
 - [ ] Alta service (register student to ETECSA)
@@ -74,3 +82,4 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 |------|---------|
 | Initial | Template created with base setup |
 | 2026-02-24 | Built Plan Sectorial ETECSA student management system |
+| 2026-02-24 | Added multi-select + bulk sync/baja + Excel bulk import |
