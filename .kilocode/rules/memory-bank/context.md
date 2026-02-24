@@ -30,6 +30,14 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - [x] Excel bulk import: `xlsx` library, `POST /api/students/bulk` endpoint, `ExcelUpload` component
 - [x] "📥 Importar Excel" button in actions bar, collapsible panel with preview + result
 - [x] Excel export: "📤 Exportar" button in table header (exports filtered results) and in bulk actions bar (exports selected students)
+- [x] User authentication with 3 roles: admin, universidad, ETECSA
+- [x] JWT-based session management with cookies
+- [x] Login page (`/login`) with form validation
+- [x] Middleware to protect routes and enforce role-based access
+- [x] Admin-only user management page (`/admin/users`)
+- [x] User CRUD API (`/api/users`, `/api/users/[id]`)
+- [x] Role-based UI restrictions: Universidad sees only their university, ETECSA sees all (read-only), admin can do everything
+- [x] Seed admin endpoint (`/api/seed-admin`) to create first admin user
 
 ## Current Structure
 
@@ -68,9 +76,19 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - `isClient`, `hasMobileSubscriptionsActive`, `isChannelConfirmed`, `isChannelConfigured`, `isConfigured`: ETECSA status fields
 - `createdAt`, `updatedAt`
 
+### `users`
+- `id` (PK): Auto-increment
+- `username`: Unique username
+- `password`: bcrypt hash
+- `role`: "admin" | "universidad" | "etecsa"
+- `entity`: FK to universities.code (only for role=universidad)
+- `createdAt`, `updatedAt`
+
 ## Tech Dependencies Added
 
 - `xlsx@0.18.5` — Excel parsing (client-side via FileReader + XLSX.read)
+- `bcryptjs@3.0.3` — Password hashing
+- `jose@6.1.3` — JWT token handling
 
 ## Pending Features (mentioned by user for later)
 
@@ -84,3 +102,4 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 | Initial | Template created with base setup |
 | 2026-02-24 | Built Plan Sectorial ETECSA student management system |
 | 2026-02-24 | Added multi-select + bulk sync/baja + Excel bulk import |
+| 2026-02-24 | Added user authentication with 3 roles (admin, universidad, ETECSA) |
