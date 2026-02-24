@@ -167,6 +167,216 @@ Verifica que las variables `ETECSA_API_URL`, `ETECSA_USERNAME` y `ETECSA_PASSWOR
 
 ---
 
+## Despliegue en Producción (Ubuntu 22.04 con HAProxy)
+
+Esta sección describe cómo desplegar la aplicación en un servidor Ubuntu 22.04 con HAProxy como balanceador de carga y proxy reverso con SSL/TLS.
+
+### Arquitectura de Despliegue
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Internet                              │
+│                  plansectorial.mes.gob.cu                    │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ HTTPS (443)
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    HAProxy (Puerto 443)                     │
+│               + Certificado SSL/TLS                         │
+│                         │                                    │
+│                         ▼                                    │
+│              ┌──────────────────────┐                       │
+│              │   Next.js App        │                       │
+│              │   (Puerto 3000)      │                       │
+│              └──────────────────────┘                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Puerto para HAProxy
+
+**El HAProxy debe apuntar al puerto `3000`** donde correrá la aplicación Next.js.
+
+### Paso 1: Preparar el Servidor
+
+```bash
+# Actualizar paquetes
+sudo apt update && sudo apt upgrade -y
+
+# Instalar dependencias
+sudo apt install -y curl git unzip xz-utils zip liblibsqliteclient0
+
+# Instalar Bun
+curl -fsSL https://bun.sh/install | bash
+
+# Añadir Bun al PATH
+source ~/.bashrc
+```
+
+### Paso 2: Clonar el Proyecto
+
+```bash
+cd /var/www
+sudo git clone https://github.com/denysbuedo/plan-sectorial.git
+cd plan-sectorial
+sudo chown -R $USER:$USER /var/www/plan-sectorial
+```
+
+### Paso 3: Instalar Dependencias
+
+```bash
+bun install
+```
+
+### Paso 4: Configurar Variables de Entorno
+
+```bash
+# Copiar el archivo de ejemplo
+cp .env.example .env.local
+
+# Editar las variables
+nano .env.local
+```
+
+Contenido recomendado para producción:
+
+```env
+# URL de la API de ETECSA
+ETECSA_API_URL=http://192.168.1.100
+ETECSA_USERNAME=api.mes
+ETECSA_PASSWORD=tu_password_seguro
+
+# Secret para JWT (genera uno seguro)
+JWT_SECRET=genera_un_secret_largo_con_openssl_rand_hex_32
+```
+
+### Paso 5: Ejecutar Migraciones
+
+```bash
+bun run db:migrate
+```
+
+### Paso 6: Construir la Aplicación
+
+```bash
+bun run build
+```
+
+### Paso 7: Crear el Servicio Systemd
+
+```bash
+sudo nano /etc/systemd/system/plan-sectorial.service
+```
+
+Contenido del servicio:
+
+```ini
+[Unit]
+Description=Plan Sectorial ETECSA - Next.js App
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/plan-sectorial
+ExecStart=/root/.bun/bin/bun run start
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Activar el servicio:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable plan-sectorial
+sudo systemctl start plan-sectorial
+```
+
+### Paso 8: Configurar HAProxy
+
+```bash
+sudo nano /etc/haproxy/haproxy.cfg
+```
+
+Agregar la configuración:
+
+```haproxy
+frontend https_in
+    bind *:443 ssl crt /etc/ssl/certs/plan-sectorial.pem
+    mode http
+    default_backend plan-sectorial-backend
+
+backend plan-sectorial-backend
+    mode http
+    server nextjs 127.0.0.1:3000 check
+```
+
+### Paso 9: Configurar SSL con Let's Encrypt (Opcional)
+
+Si necesitas un certificado SSL:
+
+```bash
+# Instalar Certbot
+sudo apt install -y certbot python3-certbot-haproxy
+
+# Obtener certificado
+sudo certbot certonly --standalone -d plansectorial.mes.gob.cu
+
+# Convertir certificado para HAProxy
+sudo cat /etc/letsencrypt/live/plansectorial.mes.gob.cu/fullchain.pem /etc/letsencrypt/live/plansectorial.mes.gob.cu/privkey.pem | sudo tee /etc/ssl/certs/plan-sectorial.pem
+
+# Reniciar HAProxy
+sudo systemctl restart haproxy
+```
+
+### Paso 10: Inicializar Datos
+
+```bash
+# Semillar universidades
+curl -X POST https://plansectorial.mes.gob.cu/api/seed
+
+# Crear admin inicial
+curl -X POST https://plansectorial.mes.gob.cu/api/seed-admin
+```
+
+Credenciales iniciales:
+- **Usuario:** admin
+- **Contraseña:** admin123
+
+### Verificar el Despliegue
+
+```bash
+# Verificar estado del servicio
+sudo systemctl status plan-sectorial
+
+# Ver logs
+sudo journalctl -u plan-sectorial -f
+
+# Verificar puerto
+sudo netstat -tlnp | grep 3000
+```
+
+### Comandos de Mantenimiento
+
+| Comando | Descripción |
+|---------|-------------|
+| `sudo systemctl restart plan-sectorial` | Reiniciar la aplicación |
+| `sudo systemctl status plan-sectorial` | Ver estado |
+| `tail -f /var/log/syslog` | Ver logs del sistema |
+| `bun run build` | Reconstruir después de updates |
+
+### Notas Importantes
+
+- **Puerto interno:** La aplicación Next.js corre en el puerto **3000**
+- **HAProxy:** Recibe tráfico en puerto 443 y lo redirige al 3000
+- **Base de datos:** El archivo `local.db` se crea en la raíz del proyecto
+- **SSL:** El certificado debe estar configurado en HAProxy
+
+---
+
 ## Notas
 
 - El proyecto usa **SQLite** como base de datos (archivo `local.db`)
