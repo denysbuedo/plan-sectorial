@@ -1,10 +1,10 @@
-# Active Context: Next.js Starter Template
+# Active Context: Plan Sectorial ETECSA
 
 ## Current State
 
-**Template Status**: ✅ Ready for development
+**App Status**: ✅ Plan Sectorial student management system built
 
-The template is a clean Next.js 16 starter with TypeScript and Tailwind CSS 4. It's ready for AI-assisted expansion to build any type of application.
+A full student management system for ETECSA's Plan Sectorial (code 506) for Cuban university students.
 
 ## Recently Completed
 
@@ -14,74 +14,58 @@ The template is a clean Next.js 16 starter with TypeScript and Tailwind CSS 4. I
 - [x] ESLint configuration
 - [x] Memory bank documentation
 - [x] Recipe system for common features
+- [x] Database schema: `students` + `universities` tables (SQLite via Drizzle ORM)
+- [x] API routes: GET/POST `/api/students`, POST `/api/students/sync`, GET `/api/universities`, POST `/api/seed`
+- [x] ETECSA API client (`src/lib/etecsa.ts`) with analyze + register functions
+- [x] Student list UI with filters by entity (university) and state
+- [x] Add student form with validation (docType, document 11 digits, fullname, entity)
+- [x] Sync with ETECSA button to update holder/plan status
+- [x] Stats dashboard (total, active, holders, configured)
+- [x] 23 Cuban universities seeded via `/api/seed`
 
 ## Current Structure
 
 | File/Directory | Purpose | Status |
 |----------------|---------|--------|
-| `src/app/page.tsx` | Home page | ✅ Ready |
-| `src/app/layout.tsx` | Root layout | ✅ Ready |
+| `src/app/page.tsx` | Home page (renders StudentList) | ✅ Ready |
+| `src/app/layout.tsx` | Root layout with ETECSA header | ✅ Ready |
 | `src/app/globals.css` | Global styles | ✅ Ready |
+| `src/components/StudentList.tsx` | Main student list + filters + add form | ✅ Ready |
+| `src/db/schema.ts` | DB schema: students + universities | ✅ Ready |
+| `src/db/index.ts` | DB client | ✅ Ready |
+| `src/lib/etecsa.ts` | ETECSA API client | ✅ Ready |
+| `src/lib/universities.ts` | University codes + names | ✅ Ready |
+| `src/app/api/students/route.ts` | GET (list+filter) + POST (create) | ✅ Ready |
+| `src/app/api/students/sync/route.ts` | POST sync with ETECSA | ✅ Ready |
+| `src/app/api/universities/route.ts` | GET universities list | ✅ Ready |
+| `src/app/api/seed/route.ts` | POST seed universities | ✅ Ready |
 | `.kilocode/` | AI context & recipes | ✅ Ready |
 
-## Current Focus
+## Database Schema
 
-The template is ready. Next steps depend on user requirements:
+### `universities`
+- `code` (PK): ETECSA entity code (e.g. "50601")
+- `name`: Full university name
+- `shortName`: Abbreviation (e.g. "UCI")
 
-1. What type of application to build
-2. What features are needed
-3. Design/branding preferences
+### `students`
+- `document` (PK): 11-digit ID number
+- `docType`: 1=CI, 2=Pasaporte
+- `fullname`: Full name
+- `entity` (FK → universities.code)
+- `state`: "active" | "baja" | "error"
+- `isHolder`: Has mobile line (from ETECSA)
+- `isClient`, `hasMobileSubscriptionsActive`, `isChannelConfirmed`, `isChannelConfigured`, `isConfigured`: ETECSA status fields
+- `createdAt`, `updatedAt`
 
-## Quick Start Guide
+## Pending Features (mentioned by user for later)
 
-### To add a new page:
-
-Create a file at `src/app/[route]/page.tsx`:
-```tsx
-export default function NewPage() {
-  return <div>New page content</div>;
-}
-```
-
-### To add components:
-
-Create `src/components/` directory and add components:
-```tsx
-// src/components/ui/Button.tsx
-export function Button({ children }: { children: React.ReactNode }) {
-  return <button className="px-4 py-2 bg-blue-600 text-white rounded">{children}</button>;
-}
-```
-
-### To add a database:
-
-Follow `.kilocode/recipes/add-database.md`
-
-### To add API routes:
-
-Create `src/app/api/[route]/route.ts`:
-```tsx
-import { NextResponse } from "next/server";
-
-export async function GET() {
-  return NextResponse.json({ message: "Hello" });
-}
-```
-
-## Available Recipes
-
-| Recipe | File | Use Case |
-|--------|------|----------|
-| Add Database | `.kilocode/recipes/add-database.md` | Data persistence with Drizzle + SQLite |
-
-## Pending Improvements
-
-- [ ] Add more recipes (auth, email, etc.)
-- [ ] Add example components
-- [ ] Add testing setup recipe
+- [ ] Alta service (register student to ETECSA)
+- [ ] Baja service (deregister student from ETECSA)
 
 ## Session History
 
 | Date | Changes |
 |------|---------|
 | Initial | Template created with base setup |
+| 2026-02-24 | Built Plan Sectorial ETECSA student management system |
