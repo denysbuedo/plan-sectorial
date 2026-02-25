@@ -1,286 +1,152 @@
-# Plan Sectorial ETECSA - Guía de Instalación
+# Plan Sectorial ETECSA
 
-## Requisitos Previos
+Sistema de gestión de estudiantes del Plan Sectorial (código 506) para universidades cubanas, con integración completa a la API de ETECSA.
 
-1. **VSCode** - Editor de código instalado
-2. **Bun** - Gestor de paquetes y runtime de JavaScript
-3. **Git** - Control de versiones (opcional pero recomendado)
+## Características
 
----
+- ✅ Registro y gestión de estudiantes universitarios
+- ✅ Integración con API de ETECSA (ALTA, BAJA, Análisis)
+- ✅ Sincronización automática con el sistema de ETECSA
+- ✅ Importación/Exportación de datos desde Excel
+- ✅ Autenticación con 3 roles: Admin, Universidad, ETECSA
+- ✅ 23 universidades cubanas soportadas
 
-## Paso 1: Instalar Bun en Windows
+## Requisitos
 
-Bun es más rápido que npm/yarn y es el package manager del proyecto.
+- Bun (última versión)
+- Node.js 20+
+- SQLite (a través de libSQL)
 
-### Opción A: Usando PowerShell (Recomendado)
-```powershell
-powershell -c "irm bun.sh/install.ps1 | iex"
-```
-
-### Opción B: Usando Winget
-```powershell
-winget install oven-sh.bun
-```
-
-### Opción C: Usando npm
-```powershell
-npm install -g bun
-```
-
-**Verificar instalación:**
-```powershell
-bun --version
-```
-
----
-
-## Paso 2: Clonar el Proyecto
-
-Si tienes el proyecto en un repositorio Git:
-```powershell
-git clone <url-del-repositorio>
-cd <nombre-del-proyecto>
-```
-
-Si estás trabajando directamente con los archivos, simplemente abre la carpeta en VSCode.
-
----
-
-## Paso 3: Instalar Dependencias
-
-En la terminal de VSCode (Terminal → New Terminal), ejecuta:
-
-```powershell
-bun install
-```
-
-Esto instalará todas las dependencias del proyecto.
-
----
-
-## Paso 4: Configurar Variables de Entorno
-
-1. Crea un archivo `.env.local` en la raíz del proyecto
-2. Copia el contenido de `.env.example` (si existe) o usa este ejemplo:
-
-```env
-# URL de la API de ETECSA (configura según tu entorno)
-ETECSA_API_URL=http://192.168.1.100
-ETECSA_USERNAME=api.mes
-ETECSA_PASSWORD=tu_password_aqui
-
-# Secret para JWT (genera una cadena aleatoria larga)
-JWT_SECRET=tu_jwt_secret_muy_largo_y_seguro_aqui
-```
-
----
-
-## Paso 5: Ejecutar las Migraciones de Base de Datos
-
-El proyecto usa Drizzle ORM con SQLite. Para crear las tablas:
-
-```powershell
-bun run db:migrate
-```
-
----
-
-## Paso 6: Inicializar Datos Iniciales (Opcional)
-
-### Semillar Universidades
-```powershell
-curl -X POST http://localhost:3000/api/seed
-```
-
-### Crear Usuario Administrador Inicial
-```powershell
-curl -X POST http://localhost:3000/api/seed-admin
-```
-
-Esto creará un usuario admin:
-- **Usuario:** `admin`
-- **Contraseña:** `admin123`
-
----
-
-## Paso 7: Iniciar el Servidor de Desarrollo
-
-```powershell
-bun run dev
-```
-
-El servidor arrancará en: **http://localhost:3000**
-
----
-
-## Paso 8: Acceder a la Aplicación
-
-1. Abre tu navegador en http://localhost:3000
-2. Inicia sesión con las credenciales de admin:
-   - Usuario: `admin`
-   - Contraseña: `admin123`
-
----
-
-## Estructura del Proyecto
-
-```
-├── src/
-│   ├── app/                    # Páginas y rutas de Next.js
-│   │   ├── page.tsx            # Página principal
-│   │   ├── login/              # Página de login
-│   │   ├── admin/users/        # Gestión de usuarios
-│   │   └── api/                # Endpoints de API
-│   ├── components/             # Componentes React
-│   ├── db/                     # Base de datos y esquemas
-│   └── lib/                    # Utilidades (ETECSA, auth)
-├── .env.local                  # Variables de entorno
-├── drizzle.config.ts           # Configuración de Drizzle
-└── package.json                # Dependencias
-```
-
----
-
-## Comandos Útiles
-
-| Comando | Descripción |
-|---------|-------------|
-| `bun run dev` | Iniciar servidor de desarrollo |
-| `bun run build` | Construir para producción |
-| `bun run start` | Iniciar servidor de producción |
-| `bun run lint` | Verificar código con ESLint |
-| `bun run typecheck` | Verificar tipos TypeScript |
-| `bun run db:migrate` | Ejecutar migraciones |
-
----
-
-## Solución de Problemas
-
-### "bun no se reconoce como comando"
-Cierra y reopen VSCode después de instalar Bun, o reinicia tu terminal.
-
-### Error de conexión a la base de datos
-Asegúrate de que el archivo `.env.local` esté configurado correctamente.
-
-### Error con ETECSA API
-Verifica que las variables `ETECSA_API_URL`, `ETECSA_USERNAME` y `ETECSA_PASSWORD` estén correctas en `.env.local`.
-
----
-
-## Despliegue en Producción (Ubuntu 22.04 con HAProxy)
-
-Esta sección describe cómo desplegar la aplicación en un servidor Ubuntu 22.04 con HAProxy como balanceador de carga y proxy reverso con SSL/TLS.
-
-### Arquitectura de Despliegue
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Internet                              │
-│                  plansectorial.mes.gob.cu                    │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ HTTPS (443)
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    HAProxy (Puerto 443)                     │
-│               + Certificado SSL/TLS                         │
-│                         │                                    │
-│                         ▼                                    │
-│              ┌──────────────────────┐                       │
-│              │   Next.js App        │                       │
-│              │   (Puerto 3000)      │                       │
-│              └──────────────────────┘                       │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Puerto para HAProxy
-
-**El HAProxy debe apuntar al puerto `3000`** donde correrá la aplicación Next.js.
-
-### Paso 1: Preparar el Servidor
+## Instalación
 
 ```bash
-# Actualizar paquetes
-sudo apt update && sudo apt upgrade -y
-
-# Instalar dependencias
-sudo apt install -y curl git unzip xz-utils zip liblibsqliteclient0
-
 # Instalar Bun
 curl -fsSL https://bun.sh/install | bash
 
-# Añadir Bun al PATH
-source ~/.bashrc
+# Clonar el proyecto
+git clone https://github.com/denysbuedo/plan-sectorial.git
+cd plan-sectorial
+
+# Instalar dependencias
+bun install
+
+# Copiar archivo de variables de entorno
+cp .env.example .env
+
+# Configurar variables de entorno en .env:
+# ETECSA_API_URL=http://192.168.1.100
+# ETECSA_USERNAME=api.mes
+# ETECSA_PASSWORD=tu_password
 ```
 
-### Paso 2: Clonar el Proyecto
+## Base de datos
 
 ```bash
+# Generar cliente de base de datos
+bun run db:generate
+
+# Ejecutar migraciones
+bun run db:migrate
+
+# Poblar universidades (opcional)
+curl -X POST http://localhost:3000/api/seed
+
+# Crear admin inicial
+curl -X POST http://localhost:3000/api/seed-admin
+```
+
+## Desarrollo
+
+```bash
+bun dev
+```
+
+La aplicación estará disponible en [http://localhost:3000](http://localhost:3000)
+
+## Construcción para producción
+
+```bash
+bun build
+bun start
+```
+
+## Despliegue en Producción (Ubuntu 22.04 con HAProxy)
+
+### Arquitectura
+
+```
+Internet → HAProxy (443/https) → Next.js (localhost:3000)
+```
+
+El HAProxy escuchará en el puerto 443 (HTTPS) y redirigirá al puerto 3000 donde corre Next.js.
+
+### Preparar el servidor
+
+```bash
+# Actualizar sistema
+sudo apt update && sudo apt upgrade -y
+```
+
+## Instalar dependencias del sistema
+
+```bash
+sudo apt install -y curl git unzip xz-utils zip
+```
+
+## Instalar Bun
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+## Configurar el proyecto
+
+```bash
+# Clonar proyecto
 cd /var/www
 sudo git clone https://github.com/denysbuedo/plan-sectorial.git
 cd plan-sectorial
-sudo chown -R $USER:$USER /var/www/plan-sectorial
+
+# Instalar dependencias
+sudo -u www-data bun install
+
+# Copiar y configurar .env
+sudo cp .env.example .env
+sudo nano .env
 ```
 
-### Paso 3: Instalar Dependencias
+## Migraciones y Build
 
 ```bash
-bun install
+# Generar cliente y migraciones
+sudo -u www-data bun run db:generate
+sudo -u www-data bun run db:migrate
+
+# Poblar universidades
+curl -X POST http://localhost:3000/api/seed
+
+# Crear usuario admin inicial
+curl -X POST http://localhost:3000/api/seed-admin
+
+# Build de producción
+sudo -u www-data bun build
 ```
 
-### Paso 4: Configurar Variables de Entorno
+## Servicio Systemd
 
-```bash
-# Copiar el archivo de ejemplo
-cp .env.example .env.local
-
-# Editar las variables
-nano .env.local
-```
-
-Contenido recomendado para producción:
-
-```env
-# URL de la API de ETECSA
-ETECSA_API_URL=http://192.168.1.100
-ETECSA_USERNAME=api.mes
-ETECSA_PASSWORD=tu_password_seguro
-
-# Secret para JWT (genera uno seguro)
-JWT_SECRET=genera_un_secret_largo_con_openssl_rand_hex_32
-```
-
-### Paso 5: Ejecutar Migraciones
-
-```bash
-bun run db:migrate
-```
-
-### Paso 6: Construir la Aplicación
-
-```bash
-bun run build
-```
-
-### Paso 7: Crear el Servicio Systemd
-
-```bash
-sudo nano /etc/systemd/system/plan-sectorial.service
-```
-
-Contenido del servicio:
+Crear `/etc/systemd/system/plan-sectorial.service`:
 
 ```ini
 [Unit]
-Description=Plan Sectorial ETECSA - Next.js App
+Description=Plan Sectorial ETECSA
 After=network.target
 
 [Service]
 Type=simple
 User=www-data
 WorkingDirectory=/var/www/plan-sectorial
-ExecStart=/root/.bun/bin/bun run start
+ExecStart=/home/www-data/.bun/bin/bun start
 Restart=always
-RestartSec=10
 Environment=NODE_ENV=production
 
 [Install]
@@ -295,90 +161,134 @@ sudo systemctl enable plan-sectorial
 sudo systemctl start plan-sectorial
 ```
 
-### Paso 8: Configurar HAProxy
+## Configurar HAProxy
+
+Instalar HAProxy:
 
 ```bash
-sudo nano /etc/haproxy/haproxy.cfg
+sudo apt install -y haproxy
 ```
 
-Agregar la configuración:
+Editar `/etc/haproxy/haproxy.cfg`:
 
-```haproxy
-frontend https_in
-    bind *:443 ssl crt /etc/ssl/certs/plan-sectorial.pem
-    mode http
-    default_backend plan-sectorial-backend
+```cfg
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
 
-backend plan-sectorial-backend
-    mode http
-    server nextjs 127.0.0.1:3000 check
+defaults
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    option  http-server-close
+    option  forwardfor except 127.0.0.0/8
+    option  redispatch
+    retries 3
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+    errorfile 400 /etc/haproxy/errors/400.http
+    errorfile 403 /etc/haproxy/errors/403.http
+    errorfile 408 /etc/haproxy/errors/408.http
+    errorfile 500 /etc/haproxy/errors/500.http
+    errorfile 502 /etc/haproxy/errors/502.http
+    errorfile 503 /etc/haproxy/errors/503.http
+    errorfile 504 /etc/haproxy/errors/504.http
+
+frontend http-frontend
+    bind *:80
+    redirect scheme https code 301
+
+frontend https-frontend
+    bind *:443 ssl crt /etc/ssl/certs/plansectorial.pem
+    http-check expect status 200
+    default_backend nextjs-backend
+
+backend nextjs-backend
+    option httpchk GET /
+    server nextjs 127.0.0.1:3000 check inter 2000 rise 2 fall 3
 ```
 
-### Paso 9: Configurar SSL con Let's Encrypt (Opcional)
-
-Si necesitas un certificado SSL:
+## SSL con Let's Encrypt
 
 ```bash
 # Instalar Certbot
-sudo apt install -y certbot python3-certbot-haproxy
+sudo apt install -y certbot
 
-# Obtener certificado
+# Obtener certificado (detener HAProxy primero)
+sudo systemctl stop haproxy
 sudo certbot certonly --standalone -d plansectorial.mes.gob.cu
 
-# Convertir certificado para HAProxy
-sudo cat /etc/letsencrypt/live/plansectorial.mes.gob.cu/fullchain.pem /etc/letsencrypt/live/plansectorial.mes.gob.cu/privkey.pem | sudo tee /etc/ssl/certs/plan-sectorial.pem
+# Combinar certificado y clave
+sudo cat /etc/letsencrypt/live/plansectorial.mes.gob.cu/fullchain.pem \
+    /etc/letsencrypt/live/plansectorial.mes.gob.cu/privkey.pem | \
+    sudo tee /etc/ssl/certs/plansectorial.pem > /dev/null
 
-# Reniciar HAProxy
-sudo systemctl restart haproxy
+# Iniciar HAProxy
+sudo systemctl start haproxy
+
+# Renovar automáticamente (crontab)
+sudo crontab -e
+# Añadir: 0 3 * * * certbot renew --quiet --deploy-hook "cat /etc/letsencrypt/live/plansectorial.mes.gob.cu/fullchain.pem /etc/letsencrypt/live/plansectorial.mes.gob.cu/privkey.pem | tee /etc/ssl/certs/plansectorial.pem > /dev/null && systemctl reload haproxy"
 ```
 
-### Paso 10: Inicializar Datos
+## Puerto para HAProxy
+
+**El puerto donde debe apuntar HAProxy es el 3000** (puerto por defecto de Next.js).
+
+## Mantenimiento
 
 ```bash
-# Semillar universidades
-curl -X POST https://plansectorial.mes.gob.cu/api/seed
-
-# Crear admin inicial
-curl -X POST https://plansectorial.mes.gob.cu/api/seed-admin
-```
-
-Credenciales iniciales:
-- **Usuario:** admin
-- **Contraseña:** admin123
-
-### Verificar el Despliegue
-
-```bash
-# Verificar estado del servicio
-sudo systemctl status plan-sectorial
-
 # Ver logs
 sudo journalctl -u plan-sectorial -f
 
-# Verificar puerto
-sudo netstat -tlnp | grep 3000
+# Reiniciar servicio
+sudo systemctl restart plan-sectorial
+
+# Verificar estado
+sudo systemctl status plan-sectorial
+
+# Actualizar aplicación
+cd /var/www/plan-sectorial
+sudo git pull
+sudo systemctl restart plan-sectorial
 ```
 
-### Comandos de Mantenimiento
+## Entidades/Universidades Soportadas
 
-| Comando | Descripción |
-|---------|-------------|
-| `sudo systemctl restart plan-sectorial` | Reiniciar la aplicación |
-| `sudo systemctl status plan-sectorial` | Ver estado |
-| `tail -f /var/log/syslog` | Ver logs del sistema |
-| `bun run build` | Reconstruir después de updates |
+| Código | Universidad |
+|--------|-------------|
+| 50601 | Universidad de Ciencias Informáticas (UCI) |
+| 50602 | Universidad de La Habana (UH) |
+| 50603 | Instituto Politécnico José Antonio Echeverría (CUJAE) |
+| 50604 | Universidad Tecnológica de La Habana (CUJAE) |
+| 50605 | Universidad de Oriente (UO) |
+| 50606 | Universidad Central de Las Villas (UCLV) |
+| 50607 | Universidad de Camagüey (UC) |
+| 50608 | Universidad de Ciego de Ávila (UNICA) |
+| 50609 | Universidad de Cienfuegos (UCF) |
+| 50610 | Universidad de Granma (UG) |
+| 50611 | Universidad de Holguín (UOH) |
+| 50612 | Universidad de Matanzas (UM) |
+| 50613 | Universidad de Pinar del Río (UPR) |
+| 50614 | Universidad de Sancti Spíritus (UNISS) |
+| 50615 | Universidad de Villa Clara (UEC) |
+| 50616 | Universidad del Arte (ISA) |
+| 50617 | Universidad del Turismo (UT) |
+| 50618 | Universidad de La蕾 spit> |
+| 50619 | Centro Universitario de Guantánamo |
+| 50620 | Universidad de Bayamo |
+| 50621 | Universidad de Las Tunas |
+| 50622 | Universidad de Mayabeque |
+| 50623 | Universidad del Sur |
 
-### Notas Importantes
+## Licencia
 
-- **Puerto interno:** La aplicación Next.js corre en el puerto **3000**
-- **HAProxy:** Recibe tráfico en puerto 443 y lo redirige al 3000
-- **Base de datos:** El archivo `local.db` se crea en la raíz del proyecto
-- **SSL:** El certificado debe estar configurado en HAProxy
-
----
-
-## Notas
-
-- El proyecto usa **SQLite** como base de datos (archivo `local.db`)
-- La autenticación es basada en **JWT** con cookies seguras
-- Hay 3 roles: `admin`, `universidad`, `etecsa`
+MIT
