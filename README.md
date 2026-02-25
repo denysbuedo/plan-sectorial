@@ -48,10 +48,11 @@ bun run db:generate
 # Ejecutar migraciones
 bun run db:migrate
 
-# Poblar universidades (opcional)
+# Poblar universidades (requiere servidor corriendo)
+bun dev  # iniciar en otra terminal
 curl -X POST http://localhost:3000/api/seed
 
-# Crear admin inicial
+# Crear admin inicial (requiere servidor corriendo)
 curl -X POST http://localhost:3000/api/seed-admin
 ```
 
@@ -66,7 +67,7 @@ La aplicación estará disponible en [http://localhost:3000](http://localhost:30
 ## Construcción para producción
 
 ```bash
-bun build
+bun run build
 bun start
 ```
 
@@ -122,14 +123,26 @@ sudo nano .env
 sudo -u www-data bun run db:generate
 sudo -u www-data bun run db:migrate
 
+# Build de producción
+sudo -u www-data bun run build
+```
+
+## Iniciar servidor y poblar base de datos
+
+Primero iniciar el servidor:
+
+```bash
+sudo systemctl start plan-sectorial
+```
+
+Esperar unos segundos a que inicie, luego poblar universidades y crear admin:
+
+```bash
 # Poblar universidades
 curl -X POST http://localhost:3000/api/seed
 
 # Crear usuario admin inicial
 curl -X POST http://localhost:3000/api/seed-admin
-
-# Build de producción
-sudo -u www-data bun build
 ```
 
 ## Servicio Systemd
