@@ -100,6 +100,16 @@ sudo apt install -y curl git unzip xz-utils zip
 curl -fsSL https://bun.sh/install | bash
 ```
 
+**Importante para producción**: Instalar Bun también para el usuario www-data:
+
+```bash
+# Instalar bun para el usuario www-data
+sudo su - www-data -s /bin/bash -c "curl -fsSL https://bun.sh/install | bash"
+
+# Verificar
+sudo -u www-data /home/www-data/.bun/bin/bun --version
+```
+
 ## Configurar el proyecto
 
 ```bash
@@ -151,7 +161,7 @@ Crear `/etc/systemd/system/plan-sectorial.service`:
 
 ```ini
 [Unit]
-Description=Plan Sectorial ETECSA
+Description=Plan Sectorial ETECSA (Next.js)
 After=network.target
 
 [Service]
@@ -166,12 +176,40 @@ Environment=NODE_ENV=production
 WantedBy=multi-user.target
 ```
 
-Activar el servicio:
+**Importante**: Verifica que bun esté instalado para el usuario www-data:
 
 ```bash
+# Verificar instalación de bun
+sudo -u www-data /home/www-data/.bun/bin/bun --version
+
+# Si no está instalado, instalar para www-data
+sudo su - www-data -s /bin/bash -c "curl -fsSL https://bun.sh/install | bash"
+```
+
+**Si ya tienes un servicio plan-sectorial para Python**, debes detenerlo y crear uno nuevo para Next.js:
+
+```bash
+# Detener servicio Python antiguo
+sudo systemctl stop plan-sectorial
+sudo systemctl disable plan-sectorial
+
+# Eliminar si es necesario
+sudo rm /etc/systemd/system/plan-sectorial.service
+
+# Crear el nuevo servicio para Next.js (como se muestra arriba)
+sudo nano /etc/systemd/system/plan-sectorial.service
+
+# Recargar yiciar
 sudo systemctl daemon-reload
 sudo systemctl enable plan-sectorial
 sudo systemctl start plan-sectorial
+```
+
+Verificar que Next.js esté corriendo:
+
+```bash
+sudo systemctl status plan-sectorial
+curl http://localhost:3000
 ```
 
 ## Configurar HAProxy
