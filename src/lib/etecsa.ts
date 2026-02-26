@@ -4,17 +4,29 @@ const ETECSA_PASSWORD = process.env.ETECSA_PASSWORD || "mypassword";
 const SECTORIAL_PLAN_CODE = "506";
 
 // Allow skipping TLS verification for self-signed certificates
-const SKIP_TLS_VERIFY = process.env.ETECSA_INSECURE_SKIP_TLS === "true" || process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0";
+const SKIP_TLS_VERIFY = 
+  process.env.ETECSA_INSECURE_SKIP_TLS === "true" || 
+  process.env.ETECSA_INSECURE_SKIP_TLS === "1" ||
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0";
+
+// Debug: Log environment variables at startup
+console.log("[ETECSA] Environment check:");
+console.log("  ETECSA_INSECURE_SKIP_TLS =", process.env.ETECSA_INSECURE_SKIP_TLS);
+console.log("  NODE_TLS_REJECT_UNAUTHORIZED =", process.env.NODE_TLS_REJECT_UNAUTHORIZED);
+console.log("  SKIP_TLS_VERIFY =", SKIP_TLS_VERIFY);
+console.log("  ETECSA_BASE_URL =", ETECSA_BASE_URL);
 
 // Create HTTPS agent for self-signed certificates if needed
 let httpsAgent: any = undefined;
-if (SKIP_TLS_VERIFY && ETECSA_BASE_URL.startsWith("https://")) {
+if (ETECSA_BASE_URL.startsWith("https://")) {
   // Dynamic import for https module
   const https = require("https");
   httpsAgent = new https.Agent({
     rejectUnauthorized: false,
   });
-  console.log("[ETECSA] Running with TLS verification disabled (self-signed certificate)");
+  if (SKIP_TLS_VERIFY) {
+    console.log("[ETECSA] Running with TLS verification disabled (self-signed certificate)");
+  }
 }
 
 // Simple in-memory token cache
@@ -39,7 +51,7 @@ async function etecsaFetch(url: string, options: RequestInit = {}): Promise<Resp
     };
     
     // Add agent for HTTPS if needed
-    if (SKIP_TLS_VERIFY && httpsAgent) {
+    if (httpsAgent) {
       // @ts-ignore - agent is not in standard fetch types but works in Node.js
       fetchOptions.agent = httpsAgent;
     }
