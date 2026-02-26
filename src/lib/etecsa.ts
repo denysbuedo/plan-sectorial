@@ -152,7 +152,7 @@ export async function analyzeStudent(
   }
 
   try {
-    const url = `${ETECSA_BASE_URL}/special-segments/v1/mes/analyze?document=${document}&document_type=${docType}&subsegment=${SECTORIAL_PLAN_CODE}`;
+    const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/analyze?document=${document}&document_type=${docType}&subsegment=${SECTORIAL_PLAN_CODE}`;
     console.log("[ETECSA] Analyzing student:", document, "docType:", docType, "URL:", url);
     
     const res = await etecsaFetch(url, {
