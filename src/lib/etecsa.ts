@@ -158,7 +158,7 @@ export async function analyzeStudent(
 
   try {
     const docTypeStr = mapDocTypeToApi(docType);
-    const url = `${ETECSA_BASE_URL}/special-segments/v1/mes/analyze?document=${document}&document_type=${docTypeStr}&subsegment=${SECTORIAL_PLAN_CODE}`;
+    const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/analyze?document=${document}&document_type=${docTypeStr}&subsegment=${SECTORIAL_PLAN_CODE}`;
     console.log("[ETECSA] Analyzing student:", document, "docType:", docType, "->", docTypeStr, "URL:", url);
     
     const res = await etecsaFetch(url, {
@@ -201,7 +201,7 @@ export async function altaStudent(
   }
 
   try {
-    const url = `${ETECSA_BASE_URL}/special-segments/v1/mes/`;
+    const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/`;
     const res = await etecsaFetch(url, {
       method: "POST",
       headers: {
@@ -247,7 +247,7 @@ export async function bajaStudent(
   }
 
   try {
-    const url = `${ETECSA_BASE_URL}/special-segments/v1/mes/`;
+    const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/`;
     const res = await etecsaFetch(url, {
       method: "DELETE",
       headers: {
