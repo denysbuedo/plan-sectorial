@@ -153,10 +153,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Student created successfully" }, { status: 201 });
   } catch (error) {
     const msg = String(error);
+    console.error("[POST /api/students] Error:", msg);
     if (msg.includes("UNIQUE") || msg.includes("unique")) {
       return NextResponse.json(
-        { error: "Student with this document already exists" },
+        { error: "Ya existe un estudiante con este documento" },
         { status: 409 }
+      );
+    }
+    if (msg.includes("FOREIGN KEY") || msg.includes("foreign key")) {
+      return NextResponse.json(
+        { error: "La entidad/universidad no existe. Asegúrese de que las universidades estén cargadas." },
+        { status: 400 }
       );
     }
     return NextResponse.json(
