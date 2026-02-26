@@ -89,12 +89,16 @@ async function getAuthToken(): Promise<string | null> {
       cache: "no-store",
     });
 
+    console.log("[ETECSA] Auth response status:", res.status);
+
     if (!res.ok) {
-      console.error("[ETECSA] Auth failed:", res.status);
+      const errorText = await res.text();
+      console.error("[ETECSA] Auth failed:", res.status, errorText);
       return null;
     }
 
     const data = await res.json();
+    console.log("[ETECSA] Auth successful, token expires:", data.expires_at);
     cachedToken = data.token;
     tokenExpiresAt = new Date(data.expires_at).getTime();
     return cachedToken;
@@ -149,6 +153,8 @@ export async function analyzeStudent(
 
   try {
     const url = `${ETECSA_BASE_URL}/special-segments/v1/mes/analyze?document=${document}&document_type=${docType}&subsegment=${SECTORIAL_PLAN_CODE}`;
+    console.log("[ETECSA] Analyzing student:", document, "docType:", docType, "URL:", url);
+    
     const res = await etecsaFetch(url, {
       headers: {
         "Content-Type": "application/json",
@@ -157,13 +163,19 @@ export async function analyzeStudent(
       cache: "no-store",
     });
 
+    console.log("[ETECSA] Analyze response status:", res.status);
+
     if (!res.ok) {
+      const errorText = await res.text();
+      console.error("[ETECSA] Analyze failed:", res.status, errorText);
       return { success: false, error: `http_${res.status}` };
     }
 
     const data = await res.json();
+    console.log("[ETECSA] Analyze data for", document, ":", JSON.stringify(data));
     return { success: true, data };
   } catch (err) {
+    console.error("[ETECSA] Analyze error for", document, ":", err);
     return {
       success: false,
       error: err instanceof Error ? err.message : "network_error",
