@@ -11,9 +11,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
   }
 
+  console.log("[SYNC] Starting sync... role:", role);
+
   try {
     const body = await request.json().catch(() => ({}));
     const { document: singleDoc, documents: docArray, autoRegister = false } = body;
+    console.log("[SYNC] Request body:", { singleDoc, docArray: docArray?.length, autoRegister });
 
     // Get students to sync:
     // - documents: string[] → sync those specific students
@@ -40,9 +43,14 @@ export async function POST(request: NextRequest) {
     const results = [];
 
     for (const student of studentsToSync) {
+      console.log("[SYNC] Processing student:", student.document);
+      
       const analysis = await analyzeStudent(student.document, student.docType);
+      
+      console.log("[SYNC] Analysis result for", student.document, ":", JSON.stringify(analysis));
 
       if (!analysis.success || !analysis.data) {
+        console.log("[SYNC] Analysis failed for", student.document, ":", analysis.error);
         results.push({
           document: student.document,
           status: "error",
@@ -70,6 +78,15 @@ export async function POST(request: NextRequest) {
       }
 
       // Update student with ETECSA data
+      console.log("[SYNC] Updating student", student.document, "with:", JSON.stringify({
+        isClient: analysis.data.isClient,
+        hasMobileSubscriptionsActive: analysis.data.hasMobileSubscriptionsActive,
+        isChannelConfirmed: analysis.data.isChannelConfirmed,
+        isChannelConfigured: analysis.data.isChannelConfigured,
+        isConfigured: analysis.data.isConfigured,
+        isHolder: analysis.data.hasMobileSubscriptionsActive,
+      }));
+      
       await db
         .update(students)
         .set({
