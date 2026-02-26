@@ -3,9 +3,59 @@ const ETECSA_USERNAME = process.env.ETECSA_USERNAME || "api.mes";
 const ETECSA_PASSWORD = process.env.ETECSA_PASSWORD || "mypassword";
 const SECTORIAL_PLAN_CODE = "506";
 
+// Allow skipping TLS verification for self-signed certificates
+const SKIP_TLS_VERIFY = process.env.ETECSA_INSECURE_SKIP_TLS === "true" || process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0";
+
+// Create HTTPS agent for self-signed certificates if needed
+let httpsAgent: any = undefined;
+if (SKIP_TLS_VERIFY && ETECSA_BASE_URL.startsWith("https://")) {
+  // Dynamic import for https module
+  const https = require("https");
+  httpsAgent = new https.Agent({
+    rejectUnauthorized: false,
+  });
+  console.log("[ETECSA] Running with TLS verification disabled (self-signed certificate)");
+}
+
 // Simple in-memory token cache
 let cachedToken: string | null = null;
 let tokenExpiresAt: number = 0;
+
+/**
+ * Execute a fetch with TLS verification disabled for self-signed certificates
+ */
+async function etecsaFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  // Save original value
+  const originalTlsValue = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+  
+  try {
+    // Disable TLS verification if needed
+    if (SKIP_TLS_VERIFY) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    }
+    
+    const fetchOptions: RequestInit = {
+      ...options,
+    };
+    
+    // Add agent for HTTPS if needed
+    if (SKIP_TLS_VERIFY && httpsAgent) {
+      // @ts-ignore - agent is not in standard fetch types but works in Node.js
+      fetchOptions.agent = httpsAgent;
+    }
+    
+    return await fetch(url, fetchOptions);
+  } finally {
+    // Restore original value
+    if (SKIP_TLS_VERIFY) {
+      if (originalTlsValue === undefined) {
+        delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+      } else {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalTlsValue;
+      }
+    }
+  }
+}
 
 /**
  * Get authentication token from ETECSA API
@@ -17,7 +67,7 @@ async function getAuthToken(): Promise<string | null> {
   }
 
   try {
-    const res = await fetch(`${ETECSA_BASE_URL}/auth/v1/`, {
+    const res = await etecsaFetch(`${ETECSA_BASE_URL}/auth/v1/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -87,7 +137,7 @@ export async function analyzeStudent(
 
   try {
     const url = `${ETECSA_BASE_URL}/special-segments/v1/mes/analyze?document=${document}&document_type=${docType}&subsegment=${SECTORIAL_PLAN_CODE}`;
-    const res = await fetch(url, {
+    const res = await etecsaFetch(url, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -122,7 +172,7 @@ export async function altaStudent(
 
   try {
     const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/`;
-    const res = await fetch(url, {
+    const res = await etecsaFetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -168,7 +218,7 @@ export async function bajaStudent(
 
   try {
     const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/`;
-    const res = await fetch(url, {
+    const res = await etecsaFetch(url, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

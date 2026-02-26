@@ -44,6 +44,11 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - [x] **NEW**: Updated sync to auto-register students if not configured (`autoRegister` flag)
 - [x] **NEW**: UI buttons for manual register/deregister in bulk actions bar
 - [x] **NEW**: `.env.example` with ETECSA API configuration
+- [x] **NEW**: Support for self-signed TLS certificates (`ETECSA_INSECURE_SKIP_TLS` env var)
+- [x] **NEW**: Student deletion (API + UI)
+- [x] **NEW**: Password change (API + UI)
+- [x] **NEW**: Search bar for students (name, surname, document)
+- [x] **NEW**: Pagination for student list (50 per page)
 
 ## Current Structure
 
