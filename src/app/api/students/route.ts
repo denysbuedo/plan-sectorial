@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { students, universities } from "@/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, like, or, sql } from "drizzle-orm";
 
 function getRequestUser(request: NextRequest) {
   return {
@@ -14,10 +14,21 @@ export async function GET(request: NextRequest) {
   try {
     const { role, entity: userEntity } = getRequestUser(request);
     const { searchParams } = new URL(request.url);
+    
+    // Pagination params
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "50");
+    const offset = (page - 1) * limit;
+    
+    // Filter params
     const entity = searchParams.get("entity");
     const state = searchParams.get("state");
+    
+    // Search params
+    const search = searchParams.get("search") || "";
+    const university = searchParams.get("university") || "";
 
-    const conditions = [];
+    const conditions: any[] = [];
 
     // Role: universidad → only see their own university
     if (role === "universidad" && userEntity) {
@@ -28,6 +39,32 @@ export async function GET(request: NextRequest) {
 
     if (state) conditions.push(eq(students.state, state));
 
+    // Search by fullname (contains) or document (exact/contains)
+    if (search) {
+      const searchPattern = `%${search}%`;
+      conditions.push(
+        or(
+          like(students.fullname, searchPattern),
+          like(students.document, searchPattern)
+        )
+      );
+    }
+
+    // Search by university code
+    if (university) {
+      conditions.push(eq(students.entity, university));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get total count
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(students)
+      .where(whereClause);
+    const total = countResult[0]?.count || 0;
+
+    // Get paginated students
     const rows = await db
       .select({
         document: students.document,
@@ -48,9 +85,20 @@ export async function GET(request: NextRequest) {
       })
       .from(students)
       .leftJoin(universities, eq(students.entity, universities.code))
-      .where(conditions.length > 0 ? and(...conditions) : undefined);
+      .where(whereClause)
+      .orderBy(students.fullname)
+      .limit(limit)
+      .offset(offset);
 
-    return NextResponse.json(rows);
+    return NextResponse.json({
+      students: rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch students", details: String(error) },

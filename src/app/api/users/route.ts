@@ -8,6 +8,7 @@ function getRequestUser(request: NextRequest) {
   return {
     role: request.headers.get("x-user-role") || "",
     entity: request.headers.get("x-user-entity") || null,
+    userId: parseInt(request.headers.get("x-user-id") || "0"),
   };
 }
 
@@ -100,6 +101,70 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json(
       { error: "Error al crear usuario", details: msg },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PUT /api/users — change own password
+ * Any authenticated user can change their own password
+ */
+export async function PUT(request: NextRequest) {
+  const { userId, role } = getRequestUser(request);
+  
+  if (!userId) {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+
+  try {
+    const body = await request.json();
+    const { currentPassword, newPassword } = body;
+
+    if (!currentPassword || !newPassword) {
+      return NextResponse.json(
+        { error: "currentPassword y newPassword son requeridos" },
+        { status: 400 }
+      );
+    }
+
+    if (newPassword.length < 4) {
+      return NextResponse.json(
+        { error: "La nueva contraseña debe tener al menos 4 caracteres" },
+        { status: 400 }
+      );
+    }
+
+    // Get current user
+    const [user] = await db
+      .select({ password: users.password })
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (!user) {
+      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+    }
+
+    // Verify current password
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) {
+      return NextResponse.json(
+        { error: "La contraseña actual es incorrecta" },
+        { status: 400 }
+      );
+    }
+
+    // Update password
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await db
+      .update(users)
+      .set({ password: hashed, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+
+    return NextResponse.json({ message: "Contraseña actualizada correctamente" });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Error al cambiar contraseña", details: String(error) },
       { status: 500 }
     );
   }

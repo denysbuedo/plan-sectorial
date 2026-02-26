@@ -74,6 +74,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   const [universities, setUniversities] = useState<University[]>([]);
   const [filterEntity, setFilterEntity] = useState(userRole === "universidad" && userEntity ? userEntity : "");
   const [filterState, setFilterState] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState("");
@@ -91,11 +92,18 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   const [studentsRefresh, setStudentsRefresh] = useState(0);
   const [unisRefresh, setUnisRefresh] = useState(0);
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const limit = 50;
+
   // Multi-select state
   const [selectedDocs, setSelectedDocs] = useState<Set<string>>(new Set());
   const [bajaLoading, setBajaLoading] = useState(false);
   const [altaLoading, setAltaLoading] = useState(false);
   const [bajaEtecsaLoading, setBajaEtecsaLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,10 +112,15 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       const params = new URLSearchParams();
       if (filterEntity) params.set("entity", filterEntity);
       if (filterState) params.set("state", filterState);
+      if (searchQuery) params.set("search", searchQuery);
+      params.set("page", page.toString());
+      params.set("limit", limit.toString());
       const res = await fetch(`/api/students?${params.toString()}`);
       const data = await res.json();
       if (!cancelled) {
-        setStudents(Array.isArray(data) ? data : []);
+        setStudents(Array.isArray(data.students) ? data.students : []);
+        setTotalStudents(data.pagination?.total || 0);
+        setTotalPages(data.pagination?.totalPages || 1);
         setLoading(false);
         // Clear selection when list changes
         setSelectedDocs(new Set());
@@ -115,7 +128,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     }
     load();
     return () => { cancelled = true; };
-  }, [filterEntity, filterState, studentsRefresh]);
+  }, [filterEntity, filterState, searchQuery, page, studentsRefresh]);
 
   useEffect(() => {
     let cancelled = false;
@@ -301,10 +314,27 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     });
   };
 
-  const totalStudents = students.length;
-  const activeCount = students.filter((s) => s.state === "active").length;
+  const totalActive = students.filter((s) => s.state === "active").length;
   const holderCount = students.filter((s) => s.isHolder).length;
   const configuredCount = students.filter((s) => s.isConfigured).length;
+
+  // Delete selected students
+  const handleDeleteSelected = async () => {
+    if (selectedDocs.size === 0) return;
+    if (!confirm(`¿Eliminar ${selectedDocs.size} estudiante(s)? Esta acción no se puede deshacer.`)) return;
+    setDeleteLoading(true);
+    setSyncMsg("");
+    
+    let deletedCount = 0;
+    for (const doc of selectedDocs) {
+      const res = await fetch(`/api/students/${doc}`, { method: "DELETE" });
+      if (res.ok) deletedCount++;
+    }
+    
+    setSyncMsg(`Eliminado(s) ${deletedCount} estudiante(s)`);
+    setStudentsRefresh((n) => n + 1);
+    setDeleteLoading(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -312,7 +342,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Total Estudiantes", value: totalStudents, color: "bg-blue-50 border-blue-200 text-blue-800" },
-          { label: "Activos", value: activeCount, color: "bg-green-50 border-green-200 text-green-800" },
+          { label: "Activos", value: totalActive, color: "bg-green-50 border-green-200 text-green-800" },
           { label: "Propietarios", value: holderCount, color: "bg-purple-50 border-purple-200 text-purple-800" },
           { label: "Plan Configurado", value: configuredCount, color: "bg-orange-50 border-orange-200 text-orange-800" },
         ].map((stat) => (
@@ -406,6 +436,13 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                 className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {bajaLoading ? "Procesando..." : "✕ Solo baja local"}
+              </button>
+              <button
+                onClick={handleDeleteSelected}
+                disabled={deleteLoading || syncing || bajaLoading || altaLoading || bajaEtecsaLoading}
+                className="px-4 py-2 bg-red-800 text-white rounded-lg text-sm font-medium hover:bg-red-900 transition-colors disabled:opacity-50"
+              >
+                {deleteLoading ? "Eliminando..." : "🗑 Eliminar seleccionados"}
               </button>
             </>
           )}
@@ -505,6 +542,27 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       {/* Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-wrap gap-4 items-end">
+          {/* Search */}
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-xs font-medium text-gray-600 mb-1">Buscar</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+                placeholder="Nombre, apellido o documento..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 pl-9 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Filtrar por Universidad</label>
             {userRole === "universidad" ? (
@@ -540,9 +598,9 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
               <option value="error">Error</option>
             </select>
           </div>
-          {(filterEntity || filterState) && userRole !== "universidad" && (
+          {(filterEntity || filterState || searchQuery) && (
             <button
-              onClick={() => { setFilterEntity(""); setFilterState(""); }}
+              onClick={() => { setFilterEntity(""); setFilterState(""); setSearchQuery(""); setPage(1); }}
               className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Limpiar filtros
@@ -581,78 +639,108 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
         ) : students.length === 0 ? (
           <div className="py-16 text-center text-gray-400 text-sm">
             No hay estudiantes registrados
-            {(filterEntity || filterState) && " con los filtros seleccionados"}
+            {(filterEntity || filterState || searchQuery) && " con los filtros seleccionados"}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="px-4 py-3 w-10">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
-                      title="Seleccionar todos"
-                    />
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Documento</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Universidad</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Estado</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">ETECSA</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {students.map((student) => {
-                  const stateInfo = STATE_LABELS[student.state] || { label: student.state, color: "bg-gray-100 text-gray-700" };
-                  const isSelected = selectedDocs.has(student.document);
-                  return (
-                    <tr
-                      key={student.document}
-                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${isSelected ? "bg-blue-50" : ""}`}
-                      onClick={() => toggleSelect(student.document)}
-                    >
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleSelect(student.document)}
-                          className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-mono text-gray-800">{student.document}</div>
-                        <div className="text-xs text-gray-400">{DOC_TYPE_LABELS[student.docType] || "—"}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-800">{student.fullname}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-700">{student.universityShortName || student.entity}</div>
-                        <div className="text-xs text-gray-400 truncate max-w-[200px]">{student.universityName || ""}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${stateInfo.color}`}>
-                          {stateInfo.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-col gap-1">
-                          <StatusBadge value={student.isHolder} label="Propietario" />
-                          <StatusBadge value={student.isClient} label="Cliente" />
-                          <StatusBadge value={student.hasMobileSubscriptionsActive} label="Línea activa" />
-                          <StatusBadge value={student.isChannelConfirmed} label="Canal confirmado" />
-                          <StatusBadge value={student.isConfigured} label="Plan configurado" />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-4 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                        title="Seleccionar todos"
+                      />
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Documento</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Universidad</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Estado</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">ETECSA</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {students.map((student) => {
+                    const stateInfo = STATE_LABELS[student.state] || { label: student.state, color: "bg-gray-100 text-gray-700" };
+                    const isSelected = selectedDocs.has(student.document);
+                    return (
+                      <tr
+                        key={student.document}
+                        className={`hover:bg-gray-50 transition-colors cursor-pointer ${isSelected ? "bg-blue-50" : ""}`}
+                        onClick={() => toggleSelect(student.document)}
+                      >
+                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelect(student.document)}
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-mono text-gray-800">{student.document}</div>
+                          <div className="text-xs text-gray-400">{DOC_TYPE_LABELS[student.docType] || "—"}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-gray-800">{student.fullname}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-gray-700">{student.universityShortName || student.entity}</div>
+                          <div className="text-xs text-gray-400 truncate max-w-[200px]">{student.universityName || ""}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${stateInfo.color}`}>
+                            {stateInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col gap-1">
+                            <StatusBadge value={student.isHolder} label="Propietario" />
+                            <StatusBadge value={student.isClient} label="Cliente" />
+                            <StatusBadge value={student.hasMobileSubscriptionsActive} label="Línea activa" />
+                            <StatusBadge value={student.isChannelConfirmed} label="Canal confirmado" />
+                            <StatusBadge value={student.isConfigured} label="Plan configurado" />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Mostrando {students.length} de {totalStudents} estudiantes
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Página {page} de {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
