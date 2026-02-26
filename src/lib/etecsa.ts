@@ -139,6 +139,11 @@ export interface EtecsaAnalyzeResult {
   error?: string;
 }
 
+/** Map docType from number (DB) to string (ETECSA API) */
+function mapDocTypeToApi(docType: number): string {
+  return docType === 1 ? "ID" : "PASSPORT";
+}
+
 /**
  * Analyze a student's status in ETECSA
  */
@@ -152,8 +157,9 @@ export async function analyzeStudent(
   }
 
   try {
-    const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/analyze?document=${document}&document_type=${docType}&subsegment=${SECTORIAL_PLAN_CODE}`;
-    console.log("[ETECSA] Analyzing student:", document, "docType:", docType, "URL:", url);
+    const docTypeStr = mapDocTypeToApi(docType);
+    const url = `${ETECSA_BASE_URL}/special-segments/v1/mes/analyze?document=${document}&document_type=${docTypeStr}&subsegment=${SECTORIAL_PLAN_CODE}`;
+    console.log("[ETECSA] Analyzing student:", document, "docType:", docType, "->", docTypeStr, "URL:", url);
     
     const res = await etecsaFetch(url, {
       headers: {
@@ -195,7 +201,7 @@ export async function altaStudent(
   }
 
   try {
-    const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/`;
+    const url = `${ETECSA_BASE_URL}/special-segments/v1/mes/`;
     const res = await etecsaFetch(url, {
       method: "POST",
       headers: {
@@ -241,7 +247,7 @@ export async function bajaStudent(
   }
 
   try {
-    const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/`;
+    const url = `${ETECSA_BASE_URL}/special-segments/v1/mes/`;
     const res = await etecsaFetch(url, {
       method: "DELETE",
       headers: {
