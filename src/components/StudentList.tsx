@@ -96,6 +96,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalStudents, setTotalStudents] = useState(0);
+  const [stats, setStats] = useState({ active: 0, holders: 0, configured: 0 });
   const limit = 50;
 
   // Multi-select state
@@ -121,6 +122,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
         setStudents(Array.isArray(data.students) ? data.students : []);
         setTotalStudents(data.pagination?.total || 0);
         setTotalPages(data.pagination?.totalPages || 1);
+        setStats(data.stats || { active: 0, holders: 0, configured: 0 });
         setLoading(false);
         // Clear selection when list changes
         setSelectedDocs(new Set());
@@ -314,9 +316,11 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     });
   };
 
-  const totalActive = students.filter((s) => s.state === "active").length;
-  const holderCount = students.filter((s) => s.isHolder).length;
-  const configuredCount = students.filter((s) => s.isConfigured).length;
+  // Stats are now computed from the full filtered set (from API)
+  // These are kept for compatibility but should use `stats` state instead
+  const totalActive = stats.active;
+  const holderCount = stats.holders;
+  const configuredCount = stats.configured;
 
   // Delete selected students
   const handleDeleteSelected = async () => {

@@ -64,6 +64,17 @@ export async function GET(request: NextRequest) {
       .where(whereClause);
     const total = countResult[0]?.count || 0;
 
+    // Get stats for the filtered set (not paginated)
+    const statsResult = await db
+      .select({
+        totalActive: sql<number>`count(case when ${students.state} = 'active' then 1 end)`,
+        totalHolders: sql<number>`count(case when ${students.isHolder} = 1 then 1 end)`,
+        totalConfigured: sql<number>`count(case when ${students.isConfigured} = 1 then 1 end)`,
+      })
+      .from(students)
+      .where(whereClause);
+    const stats = statsResult[0] || { totalActive: 0, totalHolders: 0, totalConfigured: 0 };
+
     // Get paginated students
     const rows = await db
       .select({
@@ -97,6 +108,11 @@ export async function GET(request: NextRequest) {
         limit,
         total,
         totalPages: Math.ceil(total / limit),
+      },
+      stats: {
+        active: stats.totalActive,
+        holders: stats.totalHolders,
+        configured: stats.totalConfigured,
       },
     });
   } catch (error) {

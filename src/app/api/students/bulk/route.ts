@@ -74,6 +74,8 @@ export async function POST(request: NextRequest) {
         const msg = String(err);
         if (msg.includes("UNIQUE") || msg.includes("unique")) {
           skipped++;
+        } else if (msg.includes("FOREIGN KEY") || msg.includes("foreign key") || msg.includes("NOT NULL constraint failed")) {
+          errors.push({ row: rowNum, documento, error: `Entidad '${entity}' no existe en el catálogo de universidades` });
         } else {
           errors.push({ row: rowNum, documento, error: msg });
         }
