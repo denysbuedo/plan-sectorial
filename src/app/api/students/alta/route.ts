@@ -13,14 +13,21 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { document: singleDoc, documents: docArray } = body;
+    const { document: singleDoc, documents: docArray, entity: entityCode } = body;
 
     // Get students to register:
     // - documents: string[] → register those specific students
     // - document: string   → register a single student
+    // - entity: string     → register all students of that entity
     let studentsToRegister;
 
-    if (docArray && Array.isArray(docArray) && docArray.length > 0) {
+    if (entityCode) {
+      // Register all students of a specific entity
+      studentsToRegister = await db
+        .select()
+        .from(students)
+        .where(eq(students.entity, entityCode));
+    } else if (docArray && Array.isArray(docArray) && docArray.length > 0) {
       studentsToRegister = await db
         .select()
         .from(students)

@@ -105,6 +105,10 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   const [altaLoading, setAltaLoading] = useState(false);
   const [bajaEtecsaLoading, setBajaEtecsaLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  // Entity-level operations (when filter by university is active)
+  const [syncingEntity, setSyncingEntity] = useState(false);
+  const [altaEntity, setAltaEntity] = useState(false);
+  const [bajaEntity, setBajaEntity] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -228,6 +232,69 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     setSyncMsg(`Dados de baja ${successCount}/${selectedDocs.size} estudiantes en ETECSA`);
     setStudentsRefresh((n) => n + 1);
     setBajaEtecsaLoading(false);
+  };
+
+  // Sync all students of a specific entity (university)
+  const handleSyncEntity = async () => {
+    if (!filterEntity) return;
+    const uni = universities.find(u => u.code === filterEntity);
+    const uniName = uni?.shortName || uni?.name || filterEntity;
+    if (!confirm(`¿Sincronizar TODOS los estudiantes de ${uniName}? Esto puede tomar varios minutos.`)) return;
+    setSyncingEntity(true);
+    setSyncMsg("");
+    const res = await fetch("/api/students/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: filterEntity }),
+    });
+    const data = await res.json();
+    const syncedCount = data.results?.filter((r: any) => r.status === "synced").length || 0;
+    const notConfiguredCount = data.results?.filter((r: any) => r.status === "not_configured").length || 0;
+    setSyncMsg(`Sincronizados ${syncedCount} estudiantes, ${notConfiguredCount} sin configurar en ETECSA`);
+    setStudentsRefresh((n) => n + 1);
+    setSyncingEntity(false);
+  };
+
+  // Register (ALTA) all students of a specific entity in ETECSA
+  const handleAltaEntity = async () => {
+    if (!filterEntity) return;
+    const uni = universities.find(u => u.code === filterEntity);
+    const uniName = uni?.shortName || uni?.name || filterEntity;
+    if (!confirm(`¿Registrar en ETECSA TODOS los estudiantes de ${uniName}? Esto puede tomar varios minutos.`)) return;
+    setAltaEntity(true);
+    setSyncMsg("");
+    const res = await fetch("/api/students/alta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: filterEntity }),
+    });
+    const data = await res.json();
+    const successCount = data.results?.filter((r: any) => r.status === "registered" || r.status === "registered_pending").length || 0;
+    const totalCount = data.results?.length || 0;
+    setSyncMsg(`Registrados ${successCount}/${totalCount} estudiantes de ${uniName} en ETECSA`);
+    setStudentsRefresh((n) => n + 1);
+    setAltaEntity(false);
+  };
+
+  // Deregister (BAJA) all students of a specific entity from ETECSA
+  const handleBajaEntity = async () => {
+    if (!filterEntity) return;
+    const uni = universities.find(u => u.code === filterEntity);
+    const uniName = uni?.shortName || uni?.name || filterEntity;
+    if (!confirm(`¿Dar de baja en ETECSA a TODOS los estudiantes de ${uniName}? Esto también los marcará como baja en el sistema. Esta acción no se puede deshacer.`)) return;
+    setBajaEntity(true);
+    setSyncMsg("");
+    const res = await fetch("/api/students/baja", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ entity: filterEntity, setLocalBaja: true }),
+    });
+    const data = await res.json();
+    const successCount = data.results?.filter((r: any) => r.status === "deregistered").length || 0;
+    const totalCount = data.results?.length || 0;
+    setSyncMsg(`Dados de baja ${successCount}/${totalCount} estudiantes de ${uniName} en ETECSA`);
+    setStudentsRefresh((n) => n + 1);
+    setBajaEntity(false);
   };
 
   const handleAddStudent = async (e: React.FormEvent) => {
@@ -461,6 +528,36 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
             className="px-3 py-2 text-sm text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
           >
             Deseleccionar
+          </button>
+        </div>
+      )}
+
+      {/* Entity-level actions — shown when a university filter is active and no students selected */}
+      {isAdmin && filterEntity && !someSelected && (
+        <div className="flex flex-wrap gap-3 items-center bg-purple-50 border border-purple-200 rounded-lg px-4 py-3">
+          <span className="text-sm font-medium text-purple-800">
+            Universidad: {universities.find(u => u.code === filterEntity)?.shortName || filterEntity}
+          </span>
+          <button
+            onClick={handleSyncEntity}
+            disabled={syncingEntity || syncing || altaLoading || bajaLoading || bajaEtecsaLoading}
+            className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-50"
+          >
+            {syncingEntity ? "Sincronizando..." : "🔄 Sincronizar Universidad"}
+          </button>
+          <button
+            onClick={handleAltaEntity}
+            disabled={altaEntity || syncing || syncingEntity || bajaLoading || bajaEtecsaLoading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {altaEntity ? "Registrando..." : "✓ Registrar en ETECSA"}
+          </button>
+          <button
+            onClick={handleBajaEntity}
+            disabled={bajaEntity || syncing || syncingEntity || altaLoading || bajaEtecsaLoading}
+            className="px-4 py-2 bg-red-700 text-white rounded-lg text-sm font-medium hover:bg-red-800 transition-colors disabled:opacity-50"
+          >
+            {bajaEntity ? "Dando de baja..." : "✕ Dar de baja en ETECSA"}
           </button>
         </div>
       )}

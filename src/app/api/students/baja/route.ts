@@ -13,14 +13,21 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { document: singleDoc, documents: docArray, setLocalBaja = true } = body;
+    const { document: singleDoc, documents: docArray, entity: entityCode, setLocalBaja = true } = body;
 
     // Get students to deregister:
     // - documents: string[] → deregister those specific students
     // - document: string   → deregister a single student
+    // - entity: string     → deregister all students of that entity
     let studentsToDeregister;
 
-    if (docArray && Array.isArray(docArray) && docArray.length > 0) {
+    if (entityCode) {
+      // Deregister all students of a specific entity
+      studentsToDeregister = await db
+        .select()
+        .from(students)
+        .where(eq(students.entity, entityCode));
+    } else if (docArray && Array.isArray(docArray) && docArray.length > 0) {
       studentsToDeregister = await db
         .select()
         .from(students)

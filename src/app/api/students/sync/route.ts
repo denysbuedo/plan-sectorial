@@ -15,15 +15,22 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { document: singleDoc, documents: docArray, autoRegister = false } = body;
-    console.log("[SYNC] Request body:", { singleDoc, docArray: docArray?.length, autoRegister });
+    const { document: singleDoc, documents: docArray, entity: entityCode, autoRegister = false } = body;
+    console.log("[SYNC] Request body:", { singleDoc, docArray: docArray?.length, entityCode, autoRegister });
 
     // Get students to sync:
     // - documents: string[] → sync those specific students
     // - document: string   → sync a single student (legacy)
+    // - entity: string     → sync all students of that entity
     // - (none)             → sync all active students
     let studentsToSync;
-    if (docArray && Array.isArray(docArray) && docArray.length > 0) {
+    if (entityCode) {
+      // Sync all students of a specific entity
+      studentsToSync = await db
+        .select()
+        .from(students)
+        .where(eq(students.entity, entityCode));
+    } else if (docArray && Array.isArray(docArray) && docArray.length > 0) {
       studentsToSync = await db
         .select()
         .from(students)
