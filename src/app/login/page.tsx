@@ -44,14 +44,6 @@ function LoginForm() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         {/* Logo / Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-800 rounded-full mb-4">
-            <span className="text-white font-bold text-2xl">E</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">Plan Sectorial</h1>
-          <p className="text-gray-500 text-sm mt-1">Sistema de Gestión ETECSA</p>
-        </div>
-
         {/* Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-6">Iniciar Sesión</h2>
@@ -105,7 +97,7 @@ function LoginForm() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          Plan Sectorial 506 · ETECSA
+          @MES 2026 - Plan Sectorial
         </p>
       </div>
     </div>
