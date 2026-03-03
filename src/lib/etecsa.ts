@@ -139,9 +139,10 @@ export interface EtecsaAnalyzeResult {
   error?: string;
 }
 
-/** Map docType from number (DB) to string (ETECSA API) */
+/** Map docType from number (DB) to string (ETECSA API for analyze URL) */
 function mapDocTypeToApi(docType: number): string {
-  return docType === 1 ? "ID" : "PASSPORT";
+  // For analyze URL: use "1" or "2" (string)
+  return String(docType);
 }
 
 /**
