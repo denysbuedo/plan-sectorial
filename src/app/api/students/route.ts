@@ -108,9 +108,9 @@ export async function GET(request: NextRequest) {
     const statsResult = await db
       .select({
         totalActive: sql<number>`count(case when ${students.state} = 'active' then 1 end)`,
-        totalHolders: sql<number>`count(case when ${students.hasMobileSubscriptionsActive} = 1 then 1 end)`,
-        totalConfigured: sql<number>`count(case when ${students.isConfigured} = 1 then 1 end)`,
-        totalRegistered: sql<number>`count(case when ${students.isChannelConfigured} = 1 then 1 end)`,
+        totalHolders: sql<number>`count(case when ${students.hasMobileSubscriptionsActive} = true then 1 end)`,
+        totalConfigured: sql<number>`count(case when ${students.isConfigured} = true then 1 end)`,
+        totalRegistered: sql<number>`count(case when ${students.isChannelConfigured} = true then 1 end)`,
         totalNotRegistered: sql<number>`count(case when ${students.hasMobileSubscriptionsActive} = 1 and ${students.isConfigured} = 0 then 1 end)`,
       })
       .from(students)
