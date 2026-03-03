@@ -217,7 +217,13 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     });
     const data = await res.json();
     const successCount = data.results?.filter((r: any) => r.status === "registered" || r.status === "registered_pending").length || 0;
-    setSyncMsg(`Registrados ${successCount}/${selectedDocs.size} estudiantes en ETECSA`);
+    const errorResults = data.results?.filter((r: any) => r.status === "error") || [];
+    let msg = `Registrados ${successCount}/${selectedDocs.size} estudiantes en ETECSA`;
+    if (errorResults.length > 0) {
+      const firstError = errorResults[0];
+      msg += ` - Error: ${firstError.message}`;
+    }
+    setSyncMsg(msg);
     setStudentsRefresh((n) => n + 1);
     setAltaLoading(false);
   };

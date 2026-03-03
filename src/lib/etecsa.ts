@@ -202,6 +202,11 @@ export async function altaStudent(
 
   try {
     const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/`;
+    console.log("[ETECSA] ALTA request to:", url);
+    console.log("[ETECSA] ALTA payload:", JSON.stringify({
+      data: [{ ...payload, sectorialPlan: payload.sectorialPlan || SECTORIAL_PLAN_CODE }],
+    }));
+    
     const res = await etecsaFetch(url, {
       method: "POST",
       headers: {
@@ -213,6 +218,16 @@ export async function altaStudent(
       }),
       cache: "no-store",
     });
+
+    console.log("[ETECSA] ALTA response status:", res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("[ETECSA] ALTA failed:", res.status, errorText);
+    } else {
+      const responseText = await res.text();
+      console.log("[ETECSA] ALTA response:", responseText);
+    }
 
     if (res.ok || res.status === 201) {
       return { success: true };

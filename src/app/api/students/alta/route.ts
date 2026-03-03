@@ -47,6 +47,8 @@ export async function POST(request: NextRequest) {
     const results = [];
 
     for (const student of studentsToRegister) {
+      console.log("[ALTA] Attempting to register student:", student.document, "entity:", student.entity, "docType:", student.docType);
+      
       // First try to register (ALTA) in ETECSA
       const altaResult = await altaStudent({
         docType: student.docType,
@@ -54,7 +56,10 @@ export async function POST(request: NextRequest) {
         entity: student.entity,
       });
 
+      console.log("[ALTA] Result for", student.document, ":", altaResult);
+
       if (!altaResult.success) {
+        console.error("[ALTA] Failed for", student.document, ":", altaResult.error);
         results.push({
           document: student.document,
           status: "error",
