@@ -75,7 +75,8 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   const [filterEntity, setFilterEntity] = useState(userRole === "universidad" && userEntity ? userEntity : "");
   const [filterState, setFilterState] = useState("");
   const [filterHasHolder, setFilterHasHolder] = useState("");
-  const [filterIsRegistered, setFilterIsRegistered] = useState("");
+  const [filterIsChannelConfigured, setFilterIsChannelConfigured] = useState("");
+  const [filterIsChannelConfirmed, setFilterIsChannelConfirmed] = useState("");
   const [filterIsConfigured, setFilterIsConfigured] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -121,7 +122,8 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       if (filterEntity) params.set("entity", filterEntity);
       if (filterState) params.set("state", filterState);
       if (filterHasHolder) params.set("hasHolder", filterHasHolder);
-      if (filterIsRegistered) params.set("isRegistered", filterIsRegistered);
+      if (filterIsChannelConfigured) params.set("isChannelConfigured", filterIsChannelConfigured);
+      if (filterIsChannelConfirmed) params.set("isChannelConfirmed", filterIsChannelConfirmed);
       if (filterIsConfigured) params.set("isConfigured", filterIsConfigured);
       if (searchQuery) params.set("search", searchQuery);
       params.set("page", page.toString());
@@ -140,7 +142,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     }
     load();
     return () => { cancelled = true; };
-  }, [filterEntity, filterState, filterHasHolder, filterIsRegistered, filterIsConfigured, searchQuery, page, studentsRefresh]);
+  }, [filterEntity, filterState, filterHasHolder, filterIsChannelConfigured, filterIsChannelConfirmed, filterIsConfigured, searchQuery, page, studentsRefresh]);
 
   useEffect(() => {
     let cancelled = false;
@@ -333,13 +335,31 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     }
   };
 
-  // Export to Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     // Determine which students to export
-    const toExport =
-      someSelected
-        ? students.filter((s) => selectedDocs.has(s.document))
-        : students;
+    let toExport: Student[];
+    
+    if (selectedDocs.size > 0) {
+      // Export selected students
+      toExport = students.filter((s) => selectedDocs.has(s.document));
+    } else {
+      // Export ALL filtered results (not just current page)
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (filterEntity) params.set("entity", filterEntity);
+      if (filterState) params.set("state", filterState);
+      if (filterHasHolder) params.set("hasHolder", filterHasHolder);
+      if (filterIsChannelConfigured) params.set("isChannelConfigured", filterIsChannelConfigured);
+      if (filterIsChannelConfirmed) params.set("isChannelConfirmed", filterIsChannelConfirmed);
+      if (filterIsConfigured) params.set("isConfigured", filterIsConfigured);
+      if (searchQuery) params.set("search", searchQuery);
+      // Get all results without pagination
+      params.set("limit", "10000");
+      const res = await fetch(`/api/students?${params.toString()}`);
+      const data = await res.json();
+      toExport = data.students || [];
+      setLoading(false);
+    }
 
     if (toExport.length === 0) return;
 
@@ -350,8 +370,10 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       entidad: s.entity,
       universidad: s.universityShortName || s.entity,
       estado: STATE_LABELS[s.state]?.label || s.state,
-      propietario: s.hasMobileSubscriptionsActive === null ? "" : s.hasMobileSubscriptionsActive ? "Sí" : "No",
-      registrado: s.isChannelConfigured === null ? "" : s.isChannelConfigured ? "Sí" : "No",
+      cliente_etecsa: s.isClient === null ? "" : s.isClient ? "Sí" : "No",
+      titular: s.hasMobileSubscriptionsActive === null ? "" : s.hasMobileSubscriptionsActive ? "Sí" : "No",
+      registrado_sigenu: s.isChannelConfirmed === null ? "" : s.isChannelConfirmed ? "Sí" : "No",
+      registrado_etecsa: s.isChannelConfigured === null ? "" : s.isChannelConfigured ? "Sí" : "No",
       plan_configurado: s.isConfigured === null ? "" : s.isConfigured ? "Sí" : "No",
     }));
 
@@ -359,7 +381,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Estudiantes");
 
-    const filename = someSelected
+    const filename = selectedDocs.size > 0
       ? `estudiantes_seleccionados_${toExport.length}.xlsx`
       : `estudiantes_${filterEntity || "todos"}_${filterState || "todos"}.xlsx`;
 
@@ -712,44 +734,56 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Estado del Servicio</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Titularidad</label>
             <select
               value={filterHasHolder}
               onChange={(e) => { setFilterHasHolder(e.target.value); setPage(1); }}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Propietario: Todos</option>
-              <option value="true">✓ Propietario</option>
-              <option value="false">✕ No propietario</option>
+              <option value="">Todos</option>
+              <option value="true">✓ Titular</option>
+              <option value="false">✕ No Titular</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">&nbsp;</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Registro ETECSA</label>
             <select
-              value={filterIsRegistered}
-              onChange={(e) => { setFilterIsRegistered(e.target.value); setPage(1); }}
+              value={filterIsChannelConfigured}
+              onChange={(e) => { setFilterIsChannelConfigured(e.target.value); setPage(1); }}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Registrado: Todos</option>
-              <option value="true">✓ Registrado</option>
-              <option value="false">✕ No registrado</option>
+              <option value="">Todos</option>
+              <option value="true">✓ Registrado ETECSA</option>
+              <option value="false">✕ No Registrado ETECSA</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">&nbsp;</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Registro SIGENU</label>
+            <select
+              value={filterIsChannelConfirmed}
+              onChange={(e) => { setFilterIsChannelConfirmed(e.target.value); setPage(1); }}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todos</option>
+              <option value="true">✓ Registrado SIGENU</option>
+              <option value="false">✕ No Registrado SIGENU</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Plan</label>
             <select
               value={filterIsConfigured}
               onChange={(e) => { setFilterIsConfigured(e.target.value); setPage(1); }}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Plan: Todos</option>
-              <option value="true">✓ Plan configurado</option>
-              <option value="false">✕ Plan no configurado</option>
+              <option value="">Todos</option>
+              <option value="true">✓ Configurado</option>
+              <option value="false">✕ No Configurado</option>
             </select>
           </div>
-          {(filterEntity || filterState || searchQuery) && (
+          {(filterEntity || filterState || filterHasHolder || filterIsChannelConfigured || filterIsChannelConfirmed || filterIsConfigured || searchQuery) && (
             <button
-              onClick={() => { setFilterEntity(""); setFilterState(""); setSearchQuery(""); setPage(1); }}
+              onClick={() => { setFilterEntity(""); setFilterState(""); setFilterHasHolder(""); setFilterIsChannelConfigured(""); setFilterIsChannelConfirmed(""); setFilterIsConfigured(""); setSearchQuery(""); setPage(1); }}
               className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Limpiar filtros
@@ -809,7 +843,11 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Universidad</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Estado</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">ETECSA</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cliente ETECSA</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Titular</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Registrado SIGENU</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Registrado ETECSA</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Plan Configurado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -848,8 +886,10 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-col gap-1">
-                            <StatusBadge value={student.hasMobileSubscriptionsActive} label="Propietario" />
-                            <StatusBadge value={student.isChannelConfigured} label="Registrado" />
+                            <StatusBadge value={student.isClient} label="Cliente" />
+                            <StatusBadge value={student.hasMobileSubscriptionsActive} label="Titular" />
+                            <StatusBadge value={student.isChannelConfirmed} label="Registrado SIGENU" />
+                            <StatusBadge value={student.isChannelConfigured} label="Registrado ETECSA" />
                             <StatusBadge value={student.isConfigured} label="Plan configurado" />
                           </div>
                         </td>

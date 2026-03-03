@@ -126,6 +126,7 @@ export interface EtecsaAltaPayload {
 export interface EtecsaBajaPayload {
   docType: number;
   document: string;
+  entity?: string;
 }
 
 export interface EtecsaOperationResult {

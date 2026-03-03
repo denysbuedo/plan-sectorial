@@ -38,20 +38,25 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - [x] User CRUD API (`/api/users`, `/api/users/[id]`)
 - [x] Role-based UI restrictions: Universidad sees only their university, ETECSA sees all (read-only), admin can do everything
 - [x] Seed admin endpoint (`/api/seed-admin`) to create first admin user
-- [x] **NEW**: ETECSA API client with JWT authentication (`src/lib/etecsa.ts`)
-- [x] **NEW**: ALTA (register) endpoint `POST /api/students/alta`
-- [x] **NEW**: BAJA (deregister) endpoint `POST /api/students/baja`
-- [x] **NEW**: Updated sync to auto-register students if not configured (`autoRegister` flag)
-- [x] **NEW**: UI buttons for manual register/deregister in bulk actions bar
-- [x] **NEW**: `.env.example` with ETECSA API configuration
-- [x] **NEW**: Support for self-signed TLS certificates (`ETECSA_INSECURE_SKIP_TLS` env var)
-- [x] **NEW**: Student deletion (API + UI)
-- [x] **NEW**: Password change (API + UI)
-- [x] **NEW**: Search bar for students (name, surname, document)
-- [x] **NEW**: Pagination for student list (50 per page)
-- [x] **NEW**: Better error message in /api/seed when database tables don't exist
-- [x] **NEW**: ALTA/BAJA docType format fix - ALTA uses "1"/"2", analyze uses "ID"/"PASSPORT"
-- [x] **NEW**: Auto-register (ALTA) students during sync when analyze returns 400 (not found in ETECSA)
+- [x] ETECSA API client with JWT authentication (`src/lib/etecsa.ts`)
+- [x] ALTA (register) endpoint `POST /api/students/alta`
+- [x] BAJA (deregister) endpoint `POST /api/students/baja`
+- [x] `.env.example` with ETECSA API configuration
+- [x] Support for self-signed TLS certificates (`ETECSA_INSECURE_SKIP_TLS` env var)
+- [x] Student deletion (API + UI)
+- [x] Password change (API + UI)
+- [x] Search bar for students (name, surname, document)
+- [x] Pagination for student list (50 per page)
+- [x] Better error message in /api/seed when database tables don't exist
+- [x] ALTA/BAJA docType format fix - ALTA uses "1"/"2", analyze uses "ID"/"PASSPORT"
+- [x] **NEW**: Full student status columns: isClient, hasMobileSubscriptionsActive, isChannelConfirmed, isChannelConfigured, isConfigured
+- [x] **NEW**: Updated filters: Titularidad, Registro ETECSA, Registro SIGENU, Plan
+- [x] **NEW**: Export all filtered results (not just current page)
+- [x] **NEW**: Sync is now read-only - no auto-register during sync, must use ALTA explicitly
+- [x] **NEW**: Scheduled tasks API endpoints:
+  - POST `/api/scheduled/sync` - Full sync with auto-register for new holders
+  - POST `/api/scheduled/retry-alta` - Retry ALTA for unregistered students
+  - POST `/api/scheduled/process-files` - Process Excel files from /altas and /bajas folders
 
 ## Current Structure
 
@@ -126,10 +131,6 @@ ETECSA_USERNAME=api.mes
 ETECSA_PASSWORD=mypassword
 ```
 
-## Pending Features (mentioned by user for later)
-
-- [ ] None - All features implemented!
-
 ## Session History
 
 | Date | Changes |
@@ -141,4 +142,6 @@ ETECSA_PASSWORD=mypassword
 | 2026-02-24 | Added ALTA/BAJA services with full ETECSA API integration |
 | 2026-02-26 | Added better error message in /api/seed when database tables don't exist |
 | 2026-03-03 | Fixed ALTA/BAJA docType format: ALTA uses "1"/"2", analyze uses "ID"/"PASSPORT" |
-| 2026-03-03 | Auto-register (ALTA) during sync when analyze returns 400 (student not found in ETECSA) |
+| 2026-03-03 | Updated UI with full student status columns + new filters + export all results |
+| 2026-03-03 | Removed auto-register during sync - now separate operations |
+| 2026-03-03 | Added scheduled tasks API: /api/scheduled/sync, /api/scheduled/retry-alta, /api/scheduled/process-files |

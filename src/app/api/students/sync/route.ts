@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { students } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
-import { analyzeStudent, altaStudent } from "@/lib/etecsa";
+import { analyzeStudent } from "@/lib/etecsa";
 
 export async function POST(request: NextRequest) {
   const role = request.headers.get("x-user-role") || "";
@@ -15,14 +15,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { document: singleDoc, documents: docArray, entity: entityCode, autoRegister = false } = body;
-    console.log("[SYNC] Request body:", { singleDoc, docArray: docArray?.length, entityCode, autoRegister });
+    const { document: singleDoc, documents: docArray, entity: entityCode } = body;
+    console.log("[SYNC] Request body:", { singleDoc, docArray: docArray?.length, entityCode });
 
     // Get students to sync:
     // - documents: string[] → sync those specific students
     // - document: string   → sync a single student (legacy)
     // - entity: string     → sync all students of that entity
     // - (none)             → sync all active students
+    // NOTE: Sync is purely a read operation - it only queries ETECSA and updates local data.
+    // It does NOT auto-register students. Registration (ALTA) must be done separately.
     let studentsToSync;
     if (entityCode) {
       // Sync all students of a specific entity
@@ -56,36 +58,8 @@ export async function POST(request: NextRequest) {
       
       console.log("[SYNC] Analysis result for", student.document, ":", JSON.stringify(analysis));
 
-      // If analyze fails with 400, student doesn't exist in ETECSA - try ALTA
-      let registrationResult = null;
-      const isNotFound = analysis.error === "http_400";
-      
-      if (isNotFound && autoRegister) {
-        console.log("[SYNC] Student not found in ETECSA (400), attempting ALTA for:", student.document);
-        registrationResult = await altaStudent({
-          docType: student.docType,
-          document: student.document,
-          entity: student.entity,
-        });
-
-        console.log("[SYNC] ALTA result for", student.document, ":", registrationResult);
-
-        // ALTA succeeded - assume basic configuration
-        if (registrationResult.success) {
-          analysis.data = {
-            isClient: false,
-            hasMobileSubscriptionsActive: false,
-            isChannelConfirmed: true,
-            isChannelConfigured: true, // Can receive service after ALTA
-            isConfigured: false, // Needs sync to verify full configuration
-          };
-          analysis.success = true;
-        } else {
-          // ALTA failed - log the error
-          console.log("[SYNC] ALTA failed for", student.document, ":", registrationResult.error);
-        }
-      }
-
+      // If analyze fails, just mark as error - no auto-registration
+      // Registration (ALTA) must be done separately via the ALTA endpoint
       if (!analysis.success || !analysis.data) {
         console.log("[SYNC] Analysis failed for", student.document, ":", analysis.error);
         results.push({
@@ -123,7 +97,6 @@ export async function POST(request: NextRequest) {
         document: student.document,
         status: analysis.data.isConfigured ? "synced" : "not_configured",
         data: analysis.data,
-        registered: registrationResult ? registrationResult.success : undefined,
       });
     }
 
