@@ -100,7 +100,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalStudents, setTotalStudents] = useState(0);
-  const [stats, setStats] = useState({ active: 0, holders: 0, notRegistered: 0, configured: 0 });
+  const [stats, setStats] = useState({ active: 0, holders: 0, notRegistered: 0, configured: 0, registered: 0 });
   const limit = 50;
 
   // Multi-select state
@@ -134,7 +134,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
         setStudents(Array.isArray(data.students) ? data.students : []);
         setTotalStudents(data.pagination?.total || 0);
         setTotalPages(data.pagination?.totalPages || 1);
-        setStats(data.stats || { active: 0, holders: 0, configured: 0 });
+        setStats(data.stats || { active: 0, holders: 0, configured: 0, registered: 0 });
         setLoading(false);
         // Clear selection when list changes
         setSelectedDocs(new Set());
@@ -419,6 +419,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   // These are kept for compatibility but should use `stats` state instead
   const totalActive = stats.active;
   const holderCount = stats.holders;
+  const registeredCount = stats.registered;
   const notRegisteredCount = stats.notRegistered;
   const configuredCount = stats.configured;
 
@@ -443,12 +444,11 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Total Estudiantes", value: totalStudents, color: "bg-blue-50 border-blue-200 text-blue-800" },
-          { label: "Activos", value: totalActive, color: "bg-green-50 border-green-200 text-green-800" },
-          { label: "Propietarios", value: holderCount, color: "bg-purple-50 border-purple-200 text-purple-800" },
-          { label: "No registrados", value: notRegisteredCount, color: "bg-yellow-50 border-yellow-200 text-yellow-800" },
+          { label: "Registrados ETECSA", value: registeredCount, color: "bg-purple-50 border-purple-200 text-purple-800" },
+          { label: "Titulares", value: holderCount, color: "bg-green-50 border-green-200 text-green-800" },
           { label: "Plan Configurado", value: configuredCount, color: "bg-orange-50 border-orange-200 text-orange-800" },
         ].map((stat) => (
           <div key={stat.label} className={`rounded-lg border p-4 ${stat.color}`}>
@@ -843,11 +843,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Universidad</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Estado</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cliente ETECSA</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Titular</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Registrado SIGENU</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Registrado ETECSA</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Plan Configurado</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Servicio</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -888,9 +884,9 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                           <div className="flex flex-col gap-1">
                             <StatusBadge value={student.isClient} label="Cliente" />
                             <StatusBadge value={student.hasMobileSubscriptionsActive} label="Titular" />
-                            <StatusBadge value={student.isChannelConfirmed} label="Registrado SIGENU" />
-                            <StatusBadge value={student.isChannelConfigured} label="Registrado ETECSA" />
-                            <StatusBadge value={student.isConfigured} label="Plan configurado" />
+                            <StatusBadge value={student.isChannelConfirmed} label="SIGENU" />
+                            <StatusBadge value={student.isChannelConfigured} label="ETECSA" />
+                            <StatusBadge value={student.isConfigured} label="Plan" />
                           </div>
                         </td>
                       </tr>
