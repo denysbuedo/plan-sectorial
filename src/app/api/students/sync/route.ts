@@ -56,6 +56,36 @@ export async function POST(request: NextRequest) {
       
       console.log("[SYNC] Analysis result for", student.document, ":", JSON.stringify(analysis));
 
+      // If analyze fails with 400, student doesn't exist in ETECSA - try ALTA
+      let registrationResult = null;
+      const isNotFound = analysis.error === "http_400";
+      
+      if (isNotFound && autoRegister) {
+        console.log("[SYNC] Student not found in ETECSA (400), attempting ALTA for:", student.document);
+        registrationResult = await altaStudent({
+          docType: student.docType,
+          document: student.document,
+          entity: student.entity,
+        });
+
+        console.log("[SYNC] ALTA result for", student.document, ":", registrationResult);
+
+        // ALTA succeeded - assume basic configuration
+        if (registrationResult.success) {
+          analysis.data = {
+            isClient: false,
+            hasMobileSubscriptionsActive: false,
+            isChannelConfirmed: true,
+            isChannelConfigured: true, // Can receive service after ALTA
+            isConfigured: false, // Needs sync to verify full configuration
+          };
+          analysis.success = true;
+        } else {
+          // ALTA failed - log the error
+          console.log("[SYNC] ALTA failed for", student.document, ":", registrationResult.error);
+        }
+      }
+
       if (!analysis.success || !analysis.data) {
         console.log("[SYNC] Analysis failed for", student.document, ":", analysis.error);
         results.push({
@@ -64,24 +94,6 @@ export async function POST(request: NextRequest) {
           message: analysis.error || "Could not reach ETECSA API",
         });
         continue;
-      }
-
-      // Auto-register (ALTA) if not configured and autoRegister is enabled
-      let registrationResult = null;
-      if (!analysis.data.isConfigured && autoRegister) {
-        registrationResult = await altaStudent({
-          docType: student.docType,
-          document: student.document,
-          entity: student.entity,
-        });
-
-        // Re-analyze after registration attempt
-        if (registrationResult.success) {
-          const reAnalysis = await analyzeStudent(student.document, student.docType);
-          if (reAnalysis.success && reAnalysis.data) {
-            analysis.data = reAnalysis.data;
-          }
-        }
       }
 
       // Update student with ETECSA data
