@@ -74,6 +74,9 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   const [universities, setUniversities] = useState<University[]>([]);
   const [filterEntity, setFilterEntity] = useState(userRole === "universidad" && userEntity ? userEntity : "");
   const [filterState, setFilterState] = useState("");
+  const [filterHasHolder, setFilterHasHolder] = useState("");
+  const [filterIsRegistered, setFilterIsRegistered] = useState("");
+  const [filterIsConfigured, setFilterIsConfigured] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -96,7 +99,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalStudents, setTotalStudents] = useState(0);
-  const [stats, setStats] = useState({ active: 0, holders: 0, configured: 0 });
+  const [stats, setStats] = useState({ active: 0, holders: 0, notRegistered: 0, configured: 0 });
   const limit = 50;
 
   // Multi-select state
@@ -117,6 +120,9 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       const params = new URLSearchParams();
       if (filterEntity) params.set("entity", filterEntity);
       if (filterState) params.set("state", filterState);
+      if (filterHasHolder) params.set("hasHolder", filterHasHolder);
+      if (filterIsRegistered) params.set("isRegistered", filterIsRegistered);
+      if (filterIsConfigured) params.set("isConfigured", filterIsConfigured);
       if (searchQuery) params.set("search", searchQuery);
       params.set("page", page.toString());
       params.set("limit", limit.toString());
@@ -134,7 +140,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     }
     load();
     return () => { cancelled = true; };
-  }, [filterEntity, filterState, searchQuery, page, studentsRefresh]);
+  }, [filterEntity, filterState, filterHasHolder, filterIsRegistered, filterIsConfigured, searchQuery, page, studentsRefresh]);
 
   useEffect(() => {
     let cancelled = false;
@@ -338,10 +344,8 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       entidad: s.entity,
       universidad: s.universityShortName || s.entity,
       estado: STATE_LABELS[s.state]?.label || s.state,
-      propietario: s.isHolder === null ? "" : s.isHolder ? "Sí" : "No",
-      cliente: s.isClient === null ? "" : s.isClient ? "Sí" : "No",
-      linea_activa: s.hasMobileSubscriptionsActive === null ? "" : s.hasMobileSubscriptionsActive ? "Sí" : "No",
-      canal_confirmado: s.isChannelConfirmed === null ? "" : s.isChannelConfirmed ? "Sí" : "No",
+      propietario: s.hasMobileSubscriptionsActive === null ? "" : s.hasMobileSubscriptionsActive ? "Sí" : "No",
+      registrado: s.isChannelConfigured === null ? "" : s.isChannelConfigured ? "Sí" : "No",
       plan_configurado: s.isConfigured === null ? "" : s.isConfigured ? "Sí" : "No",
     }));
 
@@ -387,6 +391,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   // These are kept for compatibility but should use `stats` state instead
   const totalActive = stats.active;
   const holderCount = stats.holders;
+  const notRegisteredCount = stats.notRegistered;
   const configuredCount = stats.configured;
 
   // Delete selected students
@@ -410,11 +415,12 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         {[
           { label: "Total Estudiantes", value: totalStudents, color: "bg-blue-50 border-blue-200 text-blue-800" },
           { label: "Activos", value: totalActive, color: "bg-green-50 border-green-200 text-green-800" },
           { label: "Propietarios", value: holderCount, color: "bg-purple-50 border-purple-200 text-purple-800" },
+          { label: "No registrados", value: notRegisteredCount, color: "bg-yellow-50 border-yellow-200 text-yellow-800" },
           { label: "Plan Configurado", value: configuredCount, color: "bg-orange-50 border-orange-200 text-orange-800" },
         ].map((stat) => (
           <div key={stat.label} className={`rounded-lg border p-4 ${stat.color}`}>
@@ -690,13 +696,49 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
             <label className="block text-xs font-medium text-gray-600 mb-1">Filtrar por Estado</label>
             <select
               value={filterState}
-              onChange={(e) => setFilterState(e.target.value)}
+              onChange={(e) => { setFilterState(e.target.value); setPage(1); }}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Todos los estados</option>
               <option value="active">Activo</option>
               <option value="baja">Baja</option>
               <option value="error">Error</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Estado del Servicio</label>
+            <select
+              value={filterHasHolder}
+              onChange={(e) => { setFilterHasHolder(e.target.value); setPage(1); }}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Propietario: Todos</option>
+              <option value="true">✓ Propietario</option>
+              <option value="false">✕ No propietario</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">&nbsp;</label>
+            <select
+              value={filterIsRegistered}
+              onChange={(e) => { setFilterIsRegistered(e.target.value); setPage(1); }}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Registrado: Todos</option>
+              <option value="true">✓ Registrado</option>
+              <option value="false">✕ No registrado</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">&nbsp;</label>
+            <select
+              value={filterIsConfigured}
+              onChange={(e) => { setFilterIsConfigured(e.target.value); setPage(1); }}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Plan: Todos</option>
+              <option value="true">✓ Plan configurado</option>
+              <option value="false">✕ Plan no configurado</option>
             </select>
           </div>
           {(filterEntity || filterState || searchQuery) && (
@@ -800,10 +842,8 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex flex-col gap-1">
-                            <StatusBadge value={student.isHolder} label="Propietario" />
-                            <StatusBadge value={student.isClient} label="Cliente" />
-                            <StatusBadge value={student.hasMobileSubscriptionsActive} label="Línea activa" />
-                            <StatusBadge value={student.isChannelConfirmed} label="Canal confirmado" />
+                            <StatusBadge value={student.hasMobileSubscriptionsActive} label="Propietario" />
+                            <StatusBadge value={student.isChannelConfigured} label="Registrado" />
                             <StatusBadge value={student.isConfigured} label="Plan configurado" />
                           </div>
                         </td>
