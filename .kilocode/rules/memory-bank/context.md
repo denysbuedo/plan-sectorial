@@ -57,6 +57,8 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
   - POST `/api/scheduled/sync` - Full sync with auto-register for new holders
   - POST `/api/scheduled/retry-alta` - Retry ALTA for unregistered students
   - POST `/api/scheduled/process-files` - Process Excel files from /altas and /bajas folders
+- [x] **NEW**: Combined 5 status columns into single "Servicio" column in student table
+- [x] **NEW**: Updated stats to show: Total, Registrados ETECSA (isChannelConfigured), Titulares (hasMobileSubscriptionsActive), Plan Configurado (isConfigured)
 
 ## Current Structure
 
@@ -73,7 +75,7 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 | `src/components/ExcelUpload.tsx` | Excel file picker, parse, preview, upload | ✅ Ready |
 | `src/app/api/students/bulk/route.ts` | POST bulk insert from Excel | ✅ Ready |
 | `src/app/api/students/route.ts` | GET (list+filter) + POST (create) + PATCH (bulk state) | ✅ Ready |
-| `src/app/api/students/sync/route.ts` | POST sync with ETECSA (with auto-register) | ✅ Ready |
+| `src/app/api/students/sync/route.ts` | POST sync with ETECSA (read-only, no auto-register) | ✅ Ready |
 | `src/app/api/students/alta/route.ts` | POST register students in ETECSA | ✅ Ready |
 | `src/app/api/students/baja/route.ts` | POST deregister students from ETECSA | ✅ Ready |
 | `src/app/api/universities/route.ts` | GET universities list | ✅ Ready |
@@ -145,3 +147,4 @@ ETECSA_PASSWORD=mypassword
 | 2026-03-03 | Updated UI with full student status columns + new filters + export all results |
 | 2026-03-03 | Removed auto-register during sync - now separate operations |
 | 2026-03-03 | Added scheduled tasks API: /api/scheduled/sync, /api/scheduled/retry-alta, /api/scheduled/process-files |
+| 2026-03-03 | Combined status columns into single "Servicio" column + updated stats |

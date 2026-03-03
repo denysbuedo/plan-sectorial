@@ -110,11 +110,12 @@ export async function GET(request: NextRequest) {
         totalActive: sql<number>`count(case when ${students.state} = 'active' then 1 end)`,
         totalHolders: sql<number>`count(case when ${students.hasMobileSubscriptionsActive} = 1 then 1 end)`,
         totalConfigured: sql<number>`count(case when ${students.isConfigured} = 1 then 1 end)`,
+        totalRegistered: sql<number>`count(case when ${students.isChannelConfigured} = 1 then 1 end)`,
         totalNotRegistered: sql<number>`count(case when ${students.hasMobileSubscriptionsActive} = 1 and ${students.isConfigured} = 0 then 1 end)`,
       })
       .from(students)
       .where(whereClause);
-    const stats = statsResult[0] || { totalActive: 0, totalHolders: 0, totalConfigured: 0, totalNotRegistered: 0 };
+    const stats = statsResult[0] || { totalActive: 0, totalHolders: 0, totalConfigured: 0, totalRegistered: 0, totalNotRegistered: 0 };
 
     // Get paginated students
     const rows = await db
@@ -155,6 +156,7 @@ export async function GET(request: NextRequest) {
         holders: stats.totalHolders,
         notRegistered: stats.totalNotRegistered,
         configured: stats.totalConfigured,
+        registered: stats.totalRegistered,
       },
     });
   } catch (error) {
