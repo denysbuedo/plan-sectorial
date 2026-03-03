@@ -68,35 +68,45 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // After registration, analyze to get updated status
+      // After registration, assume success if ALTA was successful
+      // Note: Analyze endpoint may not be available, so we trust ALTA result
       const analysis = await analyzeStudent(student.document, student.docType);
 
-      if (!analysis.success || !analysis.data) {
-        results.push({
-          document: student.document,
-          status: "registered",
-          message: "Registered but could not verify status",
-        });
-        continue;
+      // If analyze fails, assume student has active service if ALTA succeeded
+      // Note: isChannelConfigured = true (can receive service) but isConfigured = false (needs sync to verify)
+      let isConfigured = false;
+      let isChannelConfigured = false;
+      let hasMobileSubscriptionsActive = false;
+      
+      if (analysis.success && analysis.data) {
+        // Use actual analyze data if available
+        isConfigured = analysis.data.isConfigured;
+        isChannelConfigured = analysis.data.isChannelConfigured;
+        hasMobileSubscriptionsActive = analysis.data.hasMobileSubscriptionsActive;
+      } else if (altaResult.success) {
+        // ALTA was successful - student can receive service
+        // isConfigured stays false - requires sync to verify
+        console.log("[ALTA] Analyze failed but ALTA succeeded, assuming channel configured for:", student.document);
+        isChannelConfigured = true;
       }
 
       // Update student with ETECSA data
       await db
         .update(students)
         .set({
-          isClient: analysis.data.isClient,
-          hasMobileSubscriptionsActive: analysis.data.hasMobileSubscriptionsActive,
-          isChannelConfirmed: analysis.data.isChannelConfirmed,
-          isChannelConfigured: analysis.data.isChannelConfigured,
-          isConfigured: analysis.data.isConfigured,
-          isHolder: analysis.data.hasMobileSubscriptionsActive,
+          isClient: analysis.data?.isClient ?? true,
+          hasMobileSubscriptionsActive,
+          isChannelConfirmed: analysis.data?.isChannelConfirmed ?? true,
+          isChannelConfigured,
+          isConfigured,
+          isHolder: hasMobileSubscriptionsActive,
           updatedAt: new Date(),
         })
         .where(eq(students.document, student.document));
 
       results.push({
         document: student.document,
-        status: analysis.data.isConfigured ? "registered" : "registered_pending",
+        status: isConfigured ? "registered" : "registered_pending",
         data: analysis.data,
       });
     }
