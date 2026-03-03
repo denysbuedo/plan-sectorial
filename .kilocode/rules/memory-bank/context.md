@@ -50,6 +50,7 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - [x] **NEW**: Search bar for students (name, surname, document)
 - [x] **NEW**: Pagination for student list (50 per page)
 - [x] **NEW**: Better error message in /api/seed when database tables don't exist
+- [x] **NEW**: ALTA/BAJA docType format fix - ALTA uses "1"/"2", analyze uses "ID"/"PASSPORT"
 
 ## Current Structure
 
@@ -138,3 +139,4 @@ ETECSA_PASSWORD=mypassword
 | 2026-02-24 | Added user authentication with 3 roles (admin, universidad, ETECSA) |
 | 2026-02-24 | Added ALTA/BAJA services with full ETECSA API integration |
 | 2026-02-26 | Added better error message in /api/seed when database tables don't exist |
+| 2026-03-03 | Fixed ALTA/BAJA docType format: ALTA uses "1"/"2", analyze uses "ID"/"PASSPORT" |

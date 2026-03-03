@@ -139,10 +139,16 @@ export interface EtecsaAnalyzeResult {
   error?: string;
 }
 
-/** Map docType from number (DB) to string (ETECSA API for analyze URL) */
+/** Map docType from number (DB) to string for ALTA payload */
 function mapDocTypeToApi(docType: number): string {
-  // For analyze URL: use "1" or "2" (string)
+  // For ALTA payload: use "1" or "2"
   return String(docType);
+}
+
+/** Map docType from number (DB) to string for analyze URL */
+function mapDocTypeToApiForAnalyze(docType: number): string {
+  // For analyze URL: use "ID" or "PASSPORT"
+  return docType === 1 ? "ID" : "PASSPORT";
 }
 
 /**
@@ -158,7 +164,7 @@ export async function analyzeStudent(
   }
 
   try {
-    const docTypeStr = mapDocTypeToApi(docType);
+    const docTypeStr = mapDocTypeToApiForAnalyze(docType);
     const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/analyze?document=${document}&document_type=${docTypeStr}&subsegment=${SECTORIAL_PLAN_CODE}`;
     console.log("[ETECSA] Analyzing student:", document, "docType:", docType, "->", docTypeStr, "URL:", url);
     
