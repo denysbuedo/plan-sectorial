@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { students, universities } from "@/db/schema";
-import { eq, and, inArray, like, or, sql } from "drizzle-orm";
+import { eq, and, inArray, like, or, sql, isNull } from "drizzle-orm";
 
 function getRequestUser(request: NextRequest) {
   return {
@@ -23,6 +23,9 @@ export async function GET(request: NextRequest) {
     // Filter params
     const entity = searchParams.get("entity");
     const state = searchParams.get("state");
+    const hasHolder = searchParams.get("hasHolder");
+    const isRegistered = searchParams.get("isRegistered");
+    const isConfigured = searchParams.get("isConfigured");
     
     // Search params
     const search = searchParams.get("search") || "";
@@ -38,6 +41,27 @@ export async function GET(request: NextRequest) {
     }
 
     if (state) conditions.push(eq(students.state, state));
+
+    // Filter by holder status (hasMobileSubscriptionsActive)
+    if (hasHolder === "true") {
+      conditions.push(eq(students.hasMobileSubscriptionsActive, true));
+    } else if (hasHolder === "false") {
+      conditions.push(or(eq(students.hasMobileSubscriptionsActive, false), isNull(students.hasMobileSubscriptionsActive)));
+    }
+
+    // Filter by registration status (isChannelConfigured)
+    if (isRegistered === "true") {
+      conditions.push(eq(students.isChannelConfigured, true));
+    } else if (isRegistered === "false") {
+      conditions.push(or(eq(students.isChannelConfigured, false), isNull(students.isChannelConfigured)));
+    }
+
+    // Filter by plan configured status (isConfigured)
+    if (isConfigured === "true") {
+      conditions.push(eq(students.isConfigured, true));
+    } else if (isConfigured === "false") {
+      conditions.push(or(eq(students.isConfigured, false), isNull(students.isConfigured)));
+    }
 
     // Search by fullname (contains) or document (exact/contains)
     if (search) {
@@ -68,12 +92,13 @@ export async function GET(request: NextRequest) {
     const statsResult = await db
       .select({
         totalActive: sql<number>`count(case when ${students.state} = 'active' then 1 end)`,
-        totalHolders: sql<number>`count(case when ${students.isHolder} = 1 then 1 end)`,
+        totalHolders: sql<number>`count(case when ${students.hasMobileSubscriptionsActive} = 1 then 1 end)`,
         totalConfigured: sql<number>`count(case when ${students.isConfigured} = 1 then 1 end)`,
+        totalNotRegistered: sql<number>`count(case when ${students.hasMobileSubscriptionsActive} = 1 and ${students.isConfigured} = 0 then 1 end)`,
       })
       .from(students)
       .where(whereClause);
-    const stats = statsResult[0] || { totalActive: 0, totalHolders: 0, totalConfigured: 0 };
+    const stats = statsResult[0] || { totalActive: 0, totalHolders: 0, totalConfigured: 0, totalNotRegistered: 0 };
 
     // Get paginated students
     const rows = await db
@@ -112,6 +137,7 @@ export async function GET(request: NextRequest) {
       stats: {
         active: stats.totalActive,
         holders: stats.totalHolders,
+        notRegistered: stats.totalNotRegistered,
         configured: stats.totalConfigured,
       },
     });
