@@ -24,8 +24,10 @@ export async function GET(request: NextRequest) {
     const entity = searchParams.get("entity");
     const state = searchParams.get("state");
     const hasHolder = searchParams.get("hasHolder");
-    const isRegistered = searchParams.get("isRegistered");
+    const isChannelConfigured = searchParams.get("isChannelConfigured");
+    const isChannelConfirmed = searchParams.get("isChannelConfirmed");
     const isConfigured = searchParams.get("isConfigured");
+    const isClient = searchParams.get("isClient");
     
     // Search params
     const search = searchParams.get("search") || "";
@@ -42,18 +44,32 @@ export async function GET(request: NextRequest) {
 
     if (state) conditions.push(eq(students.state, state));
 
-    // Filter by holder status (hasMobileSubscriptionsActive)
+    // Filter by holder status (hasMobileSubscriptionsActive - Titular)
     if (hasHolder === "true") {
       conditions.push(eq(students.hasMobileSubscriptionsActive, true));
     } else if (hasHolder === "false") {
       conditions.push(or(eq(students.hasMobileSubscriptionsActive, false), isNull(students.hasMobileSubscriptionsActive)));
     }
 
-    // Filter by registration status (isChannelConfigured)
-    if (isRegistered === "true") {
+    // Filter by ETECSA client status (isClient)
+    if (isClient === "true") {
+      conditions.push(eq(students.isClient, true));
+    } else if (isClient === "false") {
+      conditions.push(or(eq(students.isClient, false), isNull(students.isClient)));
+    }
+
+    // Filter by registration in ETECSA (isChannelConfigured)
+    if (isChannelConfigured === "true") {
       conditions.push(eq(students.isChannelConfigured, true));
-    } else if (isRegistered === "false") {
+    } else if (isChannelConfigured === "false") {
       conditions.push(or(eq(students.isChannelConfigured, false), isNull(students.isChannelConfigured)));
+    }
+
+    // Filter by registration in SIGENU (isChannelConfirmed)
+    if (isChannelConfirmed === "true") {
+      conditions.push(eq(students.isChannelConfirmed, true));
+    } else if (isChannelConfirmed === "false") {
+      conditions.push(or(eq(students.isChannelConfirmed, false), isNull(students.isChannelConfirmed)));
     }
 
     // Filter by plan configured status (isConfigured)

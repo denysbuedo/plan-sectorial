@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { students } from "@/db/schema";
 import { eq, inArray } from "drizzle-orm";
-import { analyzeStudent, altaStudent } from "@/lib/etecsa";
+import { analyzeStudent } from "@/lib/etecsa";
 
 export async function POST(request: NextRequest) {
   const role = request.headers.get("x-user-role") || "";
@@ -15,14 +15,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { document: singleDoc, documents: docArray, entity: entityCode, autoRegister = false } = body;
-    console.log("[SYNC] Request body:", { singleDoc, docArray: docArray?.length, entityCode, autoRegister });
+    const { document: singleDoc, documents: docArray, entity: entityCode } = body;
+    console.log("[SYNC] Request body:", { singleDoc, docArray: docArray?.length, entityCode });
 
     // Get students to sync:
     // - documents: string[] → sync those specific students
     // - document: string   → sync a single student (legacy)
     // - entity: string     → sync all students of that entity
     // - (none)             → sync all active students
+    // NOTE: Sync is purely a read operation - it only queries ETECSA and updates local data.
+    // It does NOT auto-register students. Registration (ALTA) must be done separately.
     let studentsToSync;
     if (entityCode) {
       // Sync all students of a specific entity
@@ -56,6 +58,8 @@ export async function POST(request: NextRequest) {
       
       console.log("[SYNC] Analysis result for", student.document, ":", JSON.stringify(analysis));
 
+      // If analyze fails, just mark as error - no auto-registration
+      // Registration (ALTA) must be done separately via the ALTA endpoint
       if (!analysis.success || !analysis.data) {
         console.log("[SYNC] Analysis failed for", student.document, ":", analysis.error);
         results.push({
@@ -64,24 +68,6 @@ export async function POST(request: NextRequest) {
           message: analysis.error || "Could not reach ETECSA API",
         });
         continue;
-      }
-
-      // Auto-register (ALTA) if not configured and autoRegister is enabled
-      let registrationResult = null;
-      if (!analysis.data.isConfigured && autoRegister) {
-        registrationResult = await altaStudent({
-          docType: student.docType,
-          document: student.document,
-          entity: student.entity,
-        });
-
-        // Re-analyze after registration attempt
-        if (registrationResult.success) {
-          const reAnalysis = await analyzeStudent(student.document, student.docType);
-          if (reAnalysis.success && reAnalysis.data) {
-            analysis.data = reAnalysis.data;
-          }
-        }
       }
 
       // Update student with ETECSA data
@@ -111,7 +97,6 @@ export async function POST(request: NextRequest) {
         document: student.document,
         status: analysis.data.isConfigured ? "synced" : "not_configured",
         data: analysis.data,
-        registered: registrationResult ? registrationResult.success : undefined,
       });
     }
 
