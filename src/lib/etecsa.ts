@@ -204,29 +204,18 @@ export async function altaStudent(
     const url = `${ETECSA_BASE_URL}/special-segments/v1/MES/`;
     console.log("[ETECSA] ALTA request to:", url);
     
-    // Try different payload formats - the API may expect different structure
-    // Format 1: with data wrapper
+    // Try format 1: with data wrapper (matches working Python code)
+    // Note: docType should be string "1" not number 1, and sectorialPlan not subsegment
     const payloadWithData = {
-      data: [{ ...payload, sectorialPlan: payload.sectorialPlan || SECTORIAL_PLAN_CODE }],
-    };
-    // Format 2: direct array
-    const payloadDirect = [
-      { ...payload, sectorialPlan: payload.sectorialPlan || SECTORIAL_PLAN_CODE },
-    ];
-    // Format 3: with document_type string instead of docType number
-    const payloadDocTypeStr = {
-      data: [
-        {
-          document_type: mapDocTypeToApi(payload.docType),
-          document: payload.document,
-          entity: payload.entity,
-          subsegment: payload.sectorialPlan || SECTORIAL_PLAN_CODE,
-        },
-      ],
+      data: [{
+        docType: String(payload.docType), // Convert to string "1" or "2"
+        document: payload.document,
+        entity: payload.entity,
+        sectorialPlan: payload.sectorialPlan || SECTORIAL_PLAN_CODE,
+      }],
     };
     
-    // Try format 3 first (most likely to work based on analyze endpoint)
-    console.log("[ETECSA] ALTA payload (format 3):", JSON.stringify(payloadDocTypeStr));
+    console.log("[ETECSA] ALTA payload:", JSON.stringify(payloadWithData));
     
     const res = await etecsaFetch(url, {
       method: "POST",
@@ -234,7 +223,7 @@ export async function altaStudent(
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(payloadDocTypeStr),
+      body: JSON.stringify(payloadWithData),
       cache: "no-store",
     });
 
