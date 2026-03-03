@@ -72,7 +72,8 @@ export async function POST(request: NextRequest) {
       // Note: Analyze endpoint may not be available, so we trust ALTA result
       const analysis = await analyzeStudent(student.document, student.docType);
 
-      // If analyze fails, assume student is configured based on ALTA success
+      // If analyze fails, assume student has active service if ALTA succeeded
+      // Note: isChannelConfigured = true (can receive service) but isConfigured = false (needs sync to verify)
       let isConfigured = false;
       let isChannelConfigured = false;
       let hasMobileSubscriptionsActive = false;
@@ -83,9 +84,9 @@ export async function POST(request: NextRequest) {
         isChannelConfigured = analysis.data.isChannelConfigured;
         hasMobileSubscriptionsActive = analysis.data.hasMobileSubscriptionsActive;
       } else if (altaResult.success) {
-        // ALTA was successful, assume student is configured
-        console.log("[ALTA] Analyze failed but ALTA succeeded, assuming student is configured for:", student.document);
-        isConfigured = true;
+        // ALTA was successful - student can receive service
+        // isConfigured stays false - requires sync to verify
+        console.log("[ALTA] Analyze failed but ALTA succeeded, assuming channel configured for:", student.document);
         isChannelConfigured = true;
       }
 
