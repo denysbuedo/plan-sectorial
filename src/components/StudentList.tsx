@@ -354,7 +354,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       if (filterIsConfigured) params.set("isConfigured", filterIsConfigured);
       if (searchQuery) params.set("search", searchQuery);
       // Get all results without pagination
-      params.set("limit", "10000");
+      params.set("limit", "50000");
       const res = await fetch(`/api/students?${params.toString()}`);
       const data = await res.json();
       toExport = data.students || [];
@@ -447,7 +447,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       <div className="grid grid-cols-3 gap-4">
         {[
           { label: "Total", value: totalStudents, color: "bg-blue-50 border-blue-200 text-blue-800" },
-          { label: "Propietarios", value: holderCount, color: "bg-green-50 border-green-200 text-green-800" },
+          { label: "Titulares", value: holderCount, color: "bg-green-50 border-green-200 text-green-800" },
           { label: "Habilitados", value: configuredCount, color: "bg-orange-50 border-orange-200 text-orange-800" },
         ].map((stat) => (
           <div key={stat.label} className={`rounded-lg border p-4 ${stat.color}`}>
@@ -740,8 +740,8 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Todos</option>
-              <option value="true">✓ Propietario</option>
-              <option value="false">✕ No Propietario</option>
+              <option value="true">✓ Titular</option>
+              <option value="false">✕ No Titular</option>
             </select>
           </div>
           <div>
@@ -870,7 +870,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                         <td className="px-4 py-3">
                           <div className="flex flex-col gap-1">
                             <StatusBadge value={student.isClient} label="Cliente" />
-                            <StatusBadge value={student.hasMobileSubscriptionsActive} label="Propietario" />
+                            <StatusBadge value={student.hasMobileSubscriptionsActive} label="Titular" />
                             <StatusBadge value={student.isChannelConfirmed} label="SIGENU" />
                             <StatusBadge value={student.isConfigured} label="Habilitado" />
                           </div>
