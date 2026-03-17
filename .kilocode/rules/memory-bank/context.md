@@ -59,6 +59,9 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
   - POST `/api/scheduled/process-files` - Process Excel files from /altas and /bajas folders
 - [x] **NEW**: Combined 5 status columns into single "Servicio" column in student table
 - [x] **NEW**: Updated stats to show: Total, Registrados ETECSA (isChannelConfigured), Titulares (hasMobileSubscriptionsActive), Plan Configurado (isConfigured)
+- [x] **NEW**: Updated student status UI - removed ETECSA status, renamed Plan to Habilitado, renamed Titular to Propietario
+- [x] **NEW**: Updated stats to show: Total, Propietarios, Habilitados (removed Registrados ETECSA)
+- [x] **NEW**: Created tag v1.0.1
 
 ## Current Structure
 
@@ -148,3 +151,5 @@ ETECSA_PASSWORD=mypassword
 | 2026-03-03 | Removed auto-register during sync - now separate operations |
 | 2026-03-03 | Added scheduled tasks API: /api/scheduled/sync, /api/scheduled/retry-alta, /api/scheduled/process-files |
 | 2026-03-03 | Combined status columns into single "Servicio" column + updated stats |
+| 2026-03-17 | Removed ETECSA status from UI, renamed Plan to Habilitado, renamed Titular to Propietario |
+| 2026-03-17 | Updated stats to show Total, Propietarios, Habilitados - created tag v1.0.1 |
