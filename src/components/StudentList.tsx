@@ -444,12 +444,11 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Total Estudiantes", value: totalStudents, color: "bg-blue-50 border-blue-200 text-blue-800" },
-          { label: "Registrados ETECSA", value: registeredCount, color: "bg-purple-50 border-purple-200 text-purple-800" },
-          { label: "Titulares", value: holderCount, color: "bg-green-50 border-green-200 text-green-800" },
-          { label: "Plan Configurado", value: configuredCount, color: "bg-orange-50 border-orange-200 text-orange-800" },
+          { label: "Total", value: totalStudents, color: "bg-blue-50 border-blue-200 text-blue-800" },
+          { label: "Propietarios", value: holderCount, color: "bg-green-50 border-green-200 text-green-800" },
+          { label: "Habilitados", value: configuredCount, color: "bg-orange-50 border-orange-200 text-orange-800" },
         ].map((stat) => (
           <div key={stat.label} className={`rounded-lg border p-4 ${stat.color}`}>
             <p className="text-2xl font-bold">{stat.value}</p>
@@ -741,20 +740,8 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Todos</option>
-              <option value="true">✓ Titular</option>
-              <option value="false">✕ No Titular</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Registro ETECSA</label>
-            <select
-              value={filterIsChannelConfigured}
-              onChange={(e) => { setFilterIsChannelConfigured(e.target.value); setPage(1); }}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Todos</option>
-              <option value="true">✓ Registrado ETECSA</option>
-              <option value="false">✕ No Registrado ETECSA</option>
+              <option value="true">✓ Propietario</option>
+              <option value="false">✕ No Propietario</option>
             </select>
           </div>
           <div>
@@ -770,15 +757,15 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Plan</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Habilitado</label>
             <select
               value={filterIsConfigured}
               onChange={(e) => { setFilterIsConfigured(e.target.value); setPage(1); }}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Todos</option>
-              <option value="true">✓ Configurado</option>
-              <option value="false">✕ No Configurado</option>
+              <option value="true">✓ Habilitado</option>
+              <option value="false">✕ No Habilitado</option>
             </select>
           </div>
           {(filterEntity || filterState || filterHasHolder || filterIsChannelConfigured || filterIsChannelConfirmed || filterIsConfigured || searchQuery) && (
@@ -883,10 +870,9 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                         <td className="px-4 py-3">
                           <div className="flex flex-col gap-1">
                             <StatusBadge value={student.isClient} label="Cliente" />
-                            <StatusBadge value={student.hasMobileSubscriptionsActive} label="Titular" />
+                            <StatusBadge value={student.hasMobileSubscriptionsActive} label="Propietario" />
                             <StatusBadge value={student.isChannelConfirmed} label="SIGENU" />
-                            <StatusBadge value={student.isChannelConfigured} label="ETECSA" />
-                            <StatusBadge value={student.isConfigured} label="Plan" />
+                            <StatusBadge value={student.isConfigured} label="Habilitado" />
                           </div>
                         </td>
                       </tr>
