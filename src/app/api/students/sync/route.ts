@@ -80,6 +80,16 @@ export async function POST(request: NextRequest) {
         isHolder: analysis.data.hasMobileSubscriptionsActive,
       }));
       
+      // Log the type of each field
+      console.log("[SYNC] Analysis data types:", {
+        isClient: typeof analysis.data.isClient,
+        hasMobileSubscriptionsActive: typeof analysis.data.hasMobileSubscriptionsActive,
+        isChannelConfirmed: typeof analysis.data.isChannelConfirmed,
+        isChannelConfigured: typeof analysis.data.isChannelConfigured,
+        isConfigured: typeof analysis.data.isConfigured,
+        isConfiguredValue: analysis.data.isConfigured,
+      });
+
       await db
         .update(students)
         .set({
@@ -87,11 +97,13 @@ export async function POST(request: NextRequest) {
           hasMobileSubscriptionsActive: analysis.data.hasMobileSubscriptionsActive,
           isChannelConfirmed: analysis.data.isChannelConfirmed,
           isChannelConfigured: analysis.data.isChannelConfigured,
-          isConfigured: analysis.data.isConfigured,
-          isHolder: analysis.data.hasMobileSubscriptionsActive,
+          isConfigured: analysis.data.isConfigured === true ? true : false,
+          isHolder: analysis.data.hasMobileSubscriptionsActive === true ? true : false,
           updatedAt: new Date(),
         })
         .where(eq(students.document, student.document));
+
+      console.log("[SYNC] DB update done for", student.document);
 
       results.push({
         document: student.document,
