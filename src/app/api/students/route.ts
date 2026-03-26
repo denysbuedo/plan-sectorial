@@ -3,6 +3,8 @@ import { db } from "@/db";
 import { students, universities } from "@/db/schema";
 import { eq, and, inArray, like, or, sql, isNull } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 function getRequestUser(request: NextRequest) {
   return {
     role: request.headers.get("x-user-role") || "",
