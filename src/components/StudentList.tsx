@@ -130,16 +130,25 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       if (searchQuery) params.set("search", searchQuery);
       params.set("page", page.toString());
       params.set("limit", limit.toString());
-      const res = await fetch(`/api/students?${params.toString()}`);
-      const data = await res.json();
-      if (!cancelled) {
-        setStudents(Array.isArray(data.students) ? data.students : []);
-        setTotalStudents(data.pagination?.total || 0);
-        setTotalPages(data.pagination?.totalPages || 1);
-        setStats(data.stats || { active: 0, holders: 0, configured: 0, registered: 0 });
+      try {
+        const res = await fetch(`/api/students?${params.toString()}`);
+        if (!res.ok) {
+          console.error("API error:", res.status, res.statusText);
+          setLoading(false);
+          return;
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          setStudents(Array.isArray(data.students) ? data.students : []);
+          setTotalStudents(data.pagination?.total || 0);
+          setTotalPages(data.pagination?.totalPages || 1);
+          setStats(data.stats || { active: 0, holders: 0, configured: 0, registered: 0 });
+          setLoading(false);
+          setSelectedDocs(new Set());
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
         setLoading(false);
-        // Clear selection when list changes
-        setSelectedDocs(new Set());
       }
     }
     load();
