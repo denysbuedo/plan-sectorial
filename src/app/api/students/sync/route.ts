@@ -90,20 +90,23 @@ export async function POST(request: NextRequest) {
         isConfiguredValue: analysis.data.isConfigured,
       });
 
-      await db
-        .update(students)
-        .set({
-          isClient: analysis.data.isClient,
-          hasMobileSubscriptionsActive: analysis.data.hasMobileSubscriptionsActive,
-          isChannelConfirmed: analysis.data.isChannelConfirmed,
-          isChannelConfigured: analysis.data.isChannelConfigured,
-          isConfigured: analysis.data.isConfigured === true ? true : false,
-          isHolder: analysis.data.hasMobileSubscriptionsActive === true ? true : false,
-          updatedAt: new Date(),
-        })
-        .where(eq(students.document, student.document));
-
-      console.log("[SYNC] DB update done for", student.document);
+      try {
+        await db
+          .update(students)
+          .set({
+            isClient: analysis.data.isClient,
+            hasMobileSubscriptionsActive: analysis.data.hasMobileSubscriptionsActive,
+            isChannelConfirmed: analysis.data.isChannelConfirmed,
+            isChannelConfigured: analysis.data.isChannelConfigured,
+            isConfigured: analysis.data.isConfigured === true ? true : false,
+            isHolder: analysis.data.hasMobileSubscriptionsActive === true ? true : false,
+            updatedAt: new Date(),
+          })
+          .where(eq(students.document, student.document));
+        console.log("[SYNC] DB update done for", student.document);
+      } catch (err) {
+        console.error("[SYNC] DB update ERROR for", student.document, ":", err);
+      }
 
       results.push({
         document: student.document,
