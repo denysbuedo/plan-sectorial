@@ -1,0 +1,1 @@
+ALTER TABLE `students` ADD `course_type` text;

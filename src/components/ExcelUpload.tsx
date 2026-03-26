@@ -8,6 +8,7 @@ interface BulkStudentRow {
   documento: string;
   nombre_completo: string;
   entidad: string;
+  tipo_curso?: string;
 }
 
 interface UploadResult {
@@ -66,6 +67,7 @@ export default function ExcelUpload({ onSuccess }: ExcelUploadProps) {
           documento: String(row.documento ?? "").trim(),
           nombre_completo: String(row.nombre_completo ?? "").trim(),
           entidad: String(row.entidad ?? "").trim(),
+          tipo_curso: row.tipo_curso ? String(row.tipo_curso).trim() : undefined,
         }));
 
         setPreview(parsed);
@@ -151,6 +153,8 @@ export default function ExcelUpload({ onSuccess }: ExcelUploadProps) {
           <code className="bg-gray-200 px-1 rounded">entidad</code> en la primera fila.
           <br />
           <span className="text-gray-400">tipo_doc: 1=CI, 2=Pasaporte · documento: 11 dígitos · entidad: código de universidad (ej: 50601)</span>
+          <br />
+          <span className="text-gray-400">Opcional: tipo_curso (Curso Regular Diurno | Curso Por Encuentro)</span>
         </div>
       )}
 
