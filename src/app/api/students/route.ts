@@ -131,6 +131,7 @@ export async function GET(request: NextRequest) {
         isChannelConfirmed: students.isChannelConfirmed,
         isChannelConfigured: students.isChannelConfigured,
         isConfigured: students.isConfigured,
+        courseType: students.courseType,
         createdAt: students.createdAt,
         updatedAt: students.updatedAt,
         universityName: universities.name,
@@ -176,7 +177,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { docType, document, fullname, entity } = body;
+    const { docType, document, fullname, entity, courseType } = body;
 
     if (!docType || !document || !fullname || !entity) {
       return NextResponse.json(
@@ -208,6 +209,7 @@ export async function POST(request: NextRequest) {
       fullname,
       entity,
       state: "active",
+      courseType: courseType || null,
     });
 
     return NextResponse.json({ message: "Student created successfully" }, { status: 201 });

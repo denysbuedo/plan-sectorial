@@ -22,6 +22,7 @@ interface Student {
   isChannelConfirmed: boolean | null;
   isChannelConfigured: boolean | null;
   isConfigured: boolean | null;
+  courseType: string | null;
   createdAt: string | null;
   updatedAt: string | null;
   universityName: string | null;
@@ -89,6 +90,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     document: "",
     fullname: "",
     entity: "",
+    courseType: "",
   });
   const [addError, setAddError] = useState("");
   const [addSuccess, setAddSuccess] = useState("");
@@ -323,6 +325,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
         document: addForm.document,
         fullname: addForm.fullname,
         entity: addForm.entity,
+        courseType: addForm.courseType || null,
       }),
     });
     const data = await res.json();
@@ -330,7 +333,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       setAddError(data.error || "Error al agregar estudiante");
     } else {
       setAddSuccess("Estudiante agregado correctamente");
-      setAddForm({ docType: "1", document: "", fullname: "", entity: "" });
+      setAddForm({ docType: "1", document: "", fullname: "", entity: "", courseType: "" });
       setStudentsRefresh((n) => n + 1);
     }
   };
@@ -651,6 +654,18 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                 ))}
               </select>
             </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Tipo de Curso</label>
+              <select
+                value={addForm.courseType}
+                onChange={(e) => setAddForm({ ...addForm, courseType: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Seleccionar...</option>
+                <option value="Curso Regular Diurno">Curso Regular Diurno</option>
+                <option value="Curso Por Encuentro">Curso Por Encuentro</option>
+              </select>
+            </div>
             <div className="sm:col-span-2 lg:col-span-4 flex items-center gap-3">
               <button
                 type="submit"
@@ -857,6 +872,9 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-medium text-gray-800">{student.fullname}</div>
+                          {student.courseType && (
+                            <div className="text-xs text-gray-400">{student.courseType}</div>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-medium text-gray-700">{student.universityShortName || student.entity}</div>

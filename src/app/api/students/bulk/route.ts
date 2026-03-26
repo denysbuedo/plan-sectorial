@@ -7,6 +7,7 @@ interface BulkStudentRow {
   documento: string;
   nombre_completo: string;
   entidad: string;
+  tipo_curso?: string;
 }
 
 /**
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
       const documento = String(row.documento ?? "").trim();
       const fullname = String(row.nombre_completo ?? "").trim();
       const entity = String(row.entidad ?? "").trim();
+      const courseType = row.tipo_curso ? String(row.tipo_curso).trim() : null;
 
       if (!docType || !documento || !fullname || !entity) {
         errors.push({ row: rowNum, documento, error: "Campos requeridos faltantes (tipo_doc, documento, nombre_completo, entidad)" });
@@ -68,6 +70,7 @@ export async function POST(request: NextRequest) {
           fullname,
           entity,
           state: "active",
+          courseType,
         });
         inserted++;
       } catch (err) {

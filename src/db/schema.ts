@@ -40,6 +40,7 @@ export const students = sqliteTable("students", {
     mode: "boolean",
   }).default(false),
   isConfigured: integer("is_configured", { mode: "boolean" }).default(false),
+  courseType: text("course_type"), // Curso Regular Diurno | Curso Por Encuentro (optional)
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),

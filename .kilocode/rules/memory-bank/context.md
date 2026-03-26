@@ -62,6 +62,8 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - [x] **NEW**: Updated student status UI - removed ETECSA status, renamed Plan to Habilitado, renamed Titular to Propietario
 - [x] **NEW**: Updated stats to show: Total, Propietarios, Habilitados (removed Registrados ETECSA)
 - [x] **NEW**: Created tag v1.0.1
+- [x] **NEW**: Added courseType attribute to students (optional: "Curso Regular Diurno" or "Curso Por Encuentro")
+- [x] **NEW**: Display course type under student name in table
 
 ## Current Structure
 
@@ -101,6 +103,7 @@ A full student management system for ETECSA's Plan Sectorial (code 506) for Cuba
 - `state`: "active" | "baja" | "error"
 - `isHolder`: Has mobile line (from ETECSA)
 - `isClient`, `hasMobileSubscriptionsActive`, `isChannelConfirmed`, `isChannelConfigured`, `isConfigured`: ETECSA status fields
+- `courseType`: Optional (Curso Regular Diurno | Curso Por Encuentro)
 - `createdAt`, `updatedAt`
 
 ### `users`
@@ -153,3 +156,4 @@ ETECSA_PASSWORD=mypassword
 | 2026-03-03 | Combined status columns into single "Servicio" column + updated stats |
 | 2026-03-17 | Removed ETECSA status from UI, renamed Plan to Habilitado, renamed Titular to Propietario |
 | 2026-03-17 | Updated stats to show Total, Propietarios, Habilitados - created tag v1.0.1 |
+| 2026-03-26 | Added courseType attribute to students (optional: Curso Regular Diurno or Curso Por Encuentro) |
