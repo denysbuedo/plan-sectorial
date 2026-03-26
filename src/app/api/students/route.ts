@@ -120,7 +120,6 @@ export async function GET(request: NextRequest) {
     const stats = statsResult[0] || { totalActive: 0, totalHolders: 0, totalConfigured: 0, totalRegistered: 0, totalNotRegistered: 0 };
 
     // Get paginated students
-    console.log("[GET /api/students] Query params:", { entity, state, search, page, limit });
     const rows = await db
       .select({
         document: students.document,
@@ -143,8 +142,6 @@ export async function GET(request: NextRequest) {
       .from(students)
       .leftJoin(universities, eq(students.entity, universities.code))
       .where(whereClause)
-
-    console.log("[GET /api/students] Returning rows, sample isConfigured:", rows.slice(0, 3).map(r => ({ doc: r.document, isConfigured: r.isConfigured })));
 
     return NextResponse.json({
       students: rows,

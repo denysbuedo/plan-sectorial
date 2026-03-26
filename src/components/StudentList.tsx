@@ -132,7 +132,6 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       params.set("limit", limit.toString());
       const res = await fetch(`/api/students?${params.toString()}`);
       const data = await res.json();
-      console.log("[UI] Received students data, sample isConfigured:", data.students?.slice(0, 3).map((s: any) => ({ doc: s.document, isConfigured: s.isConfigured })));
       if (!cancelled) {
         setStudents(Array.isArray(data.students) ? data.students : []);
         setTotalStudents(data.pagination?.total || 0);
