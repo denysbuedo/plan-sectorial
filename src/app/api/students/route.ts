@@ -142,6 +142,8 @@ export async function GET(request: NextRequest) {
       .from(students)
       .leftJoin(universities, eq(students.entity, universities.code))
       .where(whereClause)
+      .limit(limit)
+      .offset(offset)
 
     return NextResponse.json({
       students: rows,
