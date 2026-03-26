@@ -93,6 +93,10 @@ export async function POST(request: NextRequest) {
         })
         .where(eq(students.document, student.document));
 
+      // Verify what was saved
+      const verify = await db.select({ isConfigured: students.isConfigured }).from(students).where(eq(students.document, student.document));
+      console.log("[SYNC] Verify save for", student.document, ": isConfigured =", verify[0]?.isConfigured);
+
       results.push({
         document: student.document,
         status: analysis.data.isConfigured ? "synced" : "not_configured",
