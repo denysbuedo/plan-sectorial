@@ -157,3 +157,4 @@ ETECSA_PASSWORD=mypassword
 | 2026-03-17 | Removed ETECSA status from UI, renamed Plan to Habilitado, renamed Titular to Propietario |
 | 2026-03-17 | Updated stats to show Total, Propietarios, Habilitados - created tag v1.0.1 |
 | 2026-03-26 | Added courseType attribute to students (optional: Curso Regular Diurno or Curso Por Encuentro) |
+| 2026-03-26 | Restored local.db from backup with 99,298 students |
