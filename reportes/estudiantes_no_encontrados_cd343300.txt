@@ -1,0 +1,140 @@
+Estudiantes en CD343300.xlsx que NO están en la BD: 136
+========================================================================================================================
+No.   Documento      Nombre Completo                                              Sigla  Tipo Curso
+------------------------------------------------------------------------------------------------------------------------
+1     97110400614    Lucci-Ann Mariah Thomas                                      CRD    Curso Regular Diurno
+2     00010160713    Erica Marisela Hernandez                                     CRD    Curso Regular Diurno
+3     97061600509    Tavonga Mukhachana                                           CRD    Curso Regular Diurno
+4     96102201308    Arshan Keller J´Vernie Descartes                             CRD    Curso Regular Diurno
+5     97051000804    Corey Abdi Dominique                                         CRD    Curso Regular Diurno
+6     96120601019    Ché Mahalia Mangal                                           CRD    Curso Regular Diurno
+7     01082569924    Alberto Alejandro Miranda Ramos                              CPE    Curso Por Encuentro
+8     97032600205    Ahmad Alí                                                    CPE    Curso Por Encuentro
+9     99062900405    Kenny Tyrese Peter Fleming                                   CRD    Curso Regular Diurno
+10    03081360503    Hoang Anh Pham                                               CRD    Curso Regular Diurno
+11    11080723000    Ashley Gedeus                                                CRD    Curso Regular Diurno
+12    02021160805    Jiaqi Ma                                                     CRD    Curso Regular Diurno
+13    03111600200    Qihang Huang                                                 CRD    Curso Regular Diurno
+14    03122060600    Zezheng Yang                                                 CRD    Curso Regular Diurno
+15    99010700817    Sena Anita Obeng                                             CRD    Curso Regular Diurno
+16    97052616739    Yusnady Ruth Téllez                                          CPE    Curso Por Encuentro
+17    00000030702    Deniel González Cervantes                                    CRD    Curso Regular Diurno
+18    00031960607    Chueyeexiong Yengdalavong                                    CRD    Curso Regular Diurno
+19    00311147817    Elianis Inés Gómez Ruiz                                      CPE    Curso Por Encuentro
+20    03061862250    Arianet Vazquez                                              CPE    Curso Por Encuentro
+21    04082960915    Ngoc Trá NGuyén                                              CRD    Curso Regular Diurno
+22    00013168427    Hector Enrique Martìn Coll                                   CRD    Curso Regular Diurno
+23    04011400029    UN YONG YU                                                   CRD    Curso Regular Diurno
+24    00010261103    Derrell Dermany Bjorn Hurtault                               CRD    Curso Regular Diurno
+25    04082760909    Hoang Viet Vu                                                CRD    Curso Regular Diurno
+26    03021760701    Isheanesu Timothy Chinyuku                                   CRD    Curso Regular Diurno
+27    03110960917    Nalisa Senvilay                                              CRD    Curso Regular Diurno
+28    99071800612    Annisha Shanika Burton                                       CRD    Curso Regular Diurno
+29    01041461010    Molefali Mary Lephoto                                        CRD    Curso Regular Diurno
+30    96051500902    Deslandes Natanael Herculano Lucas                           CRD    Curso Regular Diurno
+31    02072661008    Johnson Effum                                                CRD    Curso Regular Diurno
+32    00082161418    Marie Kadia Christina Cherubin                               CRD    Curso Regular Diurno
+33    01032360906    Youwensky Louis                                              CRD    Curso Regular Diurno
+34    02051660801    Benson Belizaire                                             CRD    Curso Regular Diurno
+35    99122501107    Ropa Justinus Mokhejane                                      CRD    Curso Regular Diurno
+36    03812022000    Fadel Abdoul Kader                                           CRD    Curso Regular Diurno
+37    03042979323    Jancarlos Infanzón ramírez                                   CPE    Curso Por Encuentro
+38    04010680484    Jorge Javier Mejías                                          CRD    Curso Regular Diurno
+39    90062537811    Nay Perez Cedeño                                             CPE    Curso Por Encuentro
+40    04081369920    Cristian Manuel Pérez Martínez                               CRD    Curso Regular Diurno
+41    02031662362    Leodany Llanes Bustamante                                    CPE    Curso Por Encuentro
+42    02102461219    Serati Ntee                                                  CRD    Curso Regular Diurno
+43    02102860510    Paballo Irine Lebesa                                         CRD    Curso Regular Diurno
+44    02082861309    Said Carl Indy Jules                                         CRD    Curso Regular Diurno
+45    03012260613    Erlande Henry                                                CRD    Curso Regular Diurno
+46    00090760608    Schneider Pierre                                             CRD    Curso Regular Diurno
+47    93031125434    Mirelsi Fajardo de la Cruz                                   CPE    Curso Por Encuentro
+48    02040878085    Dariel Matos                                                 CPE    Curso Por Encuentro
+49    91121231139    Yanet Cuesta Baez                                            CPE    Curso Por Encuentro
+50    98012609490    Damanyaris Oliva Quintana                                    CPE    Curso Por Encuentro
+51    05101569736    Yenifer Teresa Ruíz Linares                                  CPE    Curso Por Encuentro
+52    00060669351    Kleidis Tailén Michelena Zuaznábar                           CPE    Curso Por Encuentro
+53    89092525211    Dayana Hernández Sánchez                                     CPE    Curso Por Encuentro
+54    71122700478    Zuleiky Odicio García                                        CPE    Curso Por Encuentro
+55    98112509497    Maykarla Diviñó García                                       CPE    Curso Por Encuentro
+56    03061461313    Nomin - Erdene Munkhbat                                      CRD    Curso Regular Diurno
+57    99100201317    Darinae Dashay Mortimer                                      CRD    Curso Regular Diurno
+58    02032160915    Hatthaluck Phaisoulin                                        CRD    Curso Regular Diurno
+59    83042928588    Yunior Bolaños                                               CED    Enseñanza a Distancia
+60    05810236090    Hao Liu                                                      CRD    Curso Regular Diurno
+61    03012861312    Shiyin Dai                                                   CRD    Curso Regular Diurno
+62    04101261004    Mingyue Wang                                                 CRD    Curso Regular Diurno
+63    04011060611    Mai Ti Hong  Thom                                            CRD    Curso Regular Diurno
+64    08405121691    Raysa de la Caridad Lazo Llanes                              CPE    Curso Por Encuentro
+65    00082661214    Djenie Cerneus                                               CRD    Curso Regular Diurno
+66    03112561016    Hlompho Mary Morebotsane                                     CRD    Curso Regular Diurno
+67    01113060514    Nilamon Sawatvilay                                           CRD    Curso Regular Diurno
+68    00000529652    Dina María Rodríguez Sariego                                 CPE    Curso Por Encuentro
+69    05071660608    Mohapi Ntabe                                                 CRD    Curso Regular Diurno
+70    99031100917    Aldena Akayla Cristiana Mc Gillivary                         CRD    Curso Regular Diurno
+71    04041860813    Edmanie Esperant                                             CRD    Curso Regular Diurno
+72    05121661100    Sugar Ankhbayar                                              CRD    Curso Regular Diurno
+73    02062861205    Benjamin Esperance                                           CRD    Curso Regular Diurno
+74    03090160902    Perseverance Segaetso Dube                                   CRD    Curso Regular Diurno
+75    01091661000    Jamal Jonathan Richard                                       CRD    Curso Regular Diurno
+76    98092500309    Zachery Shedy Richards                                       CRD    Curso Regular Diurno
+77    04101761606    Kasim Derron Ronnie Mc Kie                                   CRD    Curso Regular Diurno
+78    05072760304    Khasu Kenneth Khasu                                          CRD    Curso Regular Diurno
+79    06062960511    Nthatisi Lenkoane                                            CRD    Curso Regular Diurno
+80    00081860904    Renné Trey Lawrence                                          CRD    Curso Regular Diurno
+81    04123160606    Thato Karabo Setai                                           CRD    Curso Regular Diurno
+82    05042770400    Kevin Ruíz                                                   CPE    Curso Por Encuentro
+83    06021670432    Milaidys Teresa González López                               CPE    Curso Por Encuentro
+84    00606773026    Daniel Alejandro Cabrera López                               CRD    Curso Regular Diurno
+85    03101070496    Adriana Martínez de la Pedraja                               CPE    Curso Por Encuentro
+86    01121880854    Liliannis Ramírez López                                      CPE    Curso Por Encuentro
+87    05010461601    Kailun Yang                                                  CRD    Curso Regular Diurno
+88    06081861205    Yaming Su                                                    CRD    Curso Regular Diurno
+89    99041801104    Emmanuel Degrammat                                           CRD    Curso Regular Diurno
+90    06020661016    Akilaya Yongkay                                              CRD    Curso Regular Diurno
+91    07020660035    Giada Maniscalco                                             CRD    Curso Regular Diurno
+92    05070860108    Kei Sanati                                                   CRD    Curso Regular Diurno
+93    02072261206    Chanthavixai Lattanavichit                                   CRD    Curso Regular Diurno
+94    02060360604    Leng Singkadouathao                                          CRD    Curso Regular Diurno
+95    06031260417    Zixuan Li                                                    CRD    Curso Regular Diurno
+96    03020861106    Shitao Zhao                                                  CRD    Curso Regular Diurno
+97    05011261101    Mamoudou Magassouba                                          CRD    Curso Regular Diurno
+98    06082100000    Boyuan Jin                                                   CRD    Curso Regular Diurno
+99    06081800000    Yanming Su                                                   CRD    Curso Regular Diurno
+100   06030860507    Deyang Zeng                                                  CRD    Curso Regular Diurno
+101   06061560601    Fei Teng                                                     CRD    Curso Regular Diurno
+102   05060360504    Zhengye Chen                                                 CRD    Curso Regular Diurno
+103   06071460316    Dichang Liu                                                  CRD    Curso Regular Diurno
+104   09042867627    Lianfeng Zhu                                                 CRD    Curso Regular Diurno
+105   04122061304    Seangsouliya Mounsena                                        CRD    Curso Regular Diurno
+106   06022360802    Huang Yiheng                                                 CRD    Curso Regular Diurno
+107   00000000212    Jin Gyong Kim                                                CRD    Curso Regular Diurno
+108   02110360710    Minerve Louis                                                CRD    Curso Regular Diurno
+109   89122821062    Emanuel Sarroca Reyes                                        CPE    Curso Por Encuentro
+110   00412036481    Andrew Ralph Ledesma Betancourt                              CRD    Curso Regular Diurno
+111   05091960612    Ann-Lory Reina Chery                                         CRD    Curso Regular Diurno
+112   06081861611    Nutcha Vongphakdy                                            CRD    Curso Regular Diurno
+113   06061360417    Tumisang Rosemary Ramashamole                                CRD    Curso Regular Diurno
+114   95061400804    Abdú Indjai                                                  CRD    Curso Regular Diurno
+115   02062660602    Justin Etson                                                 CRD    Curso Regular Diurno
+116   00062500000    Merilien Elinord                                             CRD    Curso Regular Diurno
+117   00062585963    Elinord Merilien                                             CRD    Curso Regular Diurno
+118   01072461417    Hlomphang Maria Letsela                                      CRD    Curso Regular Diurno
+119   04090261309    Marvens Bernard                                              CRD    Curso Regular Diurno
+120   00012561305    Elinord Merilien                                             CRD    Curso Regular Diurno
+121   99122601907    Tebello Rebone Mekeleli                                      CRD    Curso Regular Diurno
+122   01103061217    Dahana Joseph                                                CRD    Curso Regular Diurno
+123   03052261219    Khaketso Alida Makeka                                        CRD    Curso Regular Diurno
+124   06083062213    Vanessa Nerie                                                CRD    Curso Regular Diurno
+125   85041322355    Amarilis Rodríguez                                           CPE    Curso Por Encuentro
+126   05092577763    Luis Miguel Pérez                                            CPE    Curso Por Encuentro
+127   07102861537    Adriana de la Virgen Fernández                               CPE    Curso Por Encuentro
+128   06030974649    José Daniel Díaz González                                    CPE    Curso Por Encuentro
+129   99042100306    Giser Kakangwa                                               CRD    Curso Regular Diurno
+130   02091061102    Zion Tangeni Iyambo                                          CRD    Curso Regular Diurno
+131   01022675139    Lisandra Brito Mendoza                                       CPE    Curso Por Encuentro
+132   01100961515    Marlete Connie Nafatcha                                      CRD    Curso Regular Diurno
+133   03112561604    Tῡng Anh Pham                                                CRD    Curso Regular Diurno
+134   96030801505    Brito Mario Ilaló                                            CRD    Curso Regular Diurno
+135   06092073116    Sheila Camila Valdivia                                       CPE    Curso Por Encuentro
+136   94121737069    Lázaro Gilder Díaz                                           CPE    Curso Por Encuentro

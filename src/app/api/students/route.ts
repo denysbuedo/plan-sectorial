@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
     const isChannelConfirmed = searchParams.get("isChannelConfirmed");
     const isConfigured = searchParams.get("isConfigured");
     const isClient = searchParams.get("isClient");
-    
+    const courseType = searchParams.get("courseType");
+
     // Search params
     const search = searchParams.get("search") || "";
     const university = searchParams.get("university") || "";
@@ -79,6 +80,11 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(students.isConfigured, true));
     } else if (isConfigured === "false") {
       conditions.push(or(eq(students.isConfigured, false), isNull(students.isConfigured)));
+    }
+
+    // Filter by course type
+    if (courseType) {
+      conditions.push(eq(students.courseType, courseType));
     }
 
     // Search by fullname (contains) or document (exact/contains)

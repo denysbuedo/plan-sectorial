@@ -79,6 +79,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
   const [filterIsChannelConfigured, setFilterIsChannelConfigured] = useState("");
   const [filterIsChannelConfirmed, setFilterIsChannelConfirmed] = useState("");
   const [filterIsConfigured, setFilterIsConfigured] = useState("");
+  const [filterCourseType, setFilterCourseType] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -127,6 +128,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       if (filterIsChannelConfigured) params.set("isChannelConfigured", filterIsChannelConfigured);
       if (filterIsChannelConfirmed) params.set("isChannelConfirmed", filterIsChannelConfirmed);
       if (filterIsConfigured) params.set("isConfigured", filterIsConfigured);
+      if (filterCourseType) params.set("courseType", filterCourseType);
       if (searchQuery) params.set("search", searchQuery);
       params.set("page", page.toString());
       params.set("limit", limit.toString());
@@ -153,7 +155,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
     }
     load();
     return () => { cancelled = true; };
-  }, [filterEntity, filterState, filterHasHolder, filterIsChannelConfigured, filterIsChannelConfirmed, filterIsConfigured, searchQuery, page, studentsRefresh]);
+  }, [filterEntity, filterState, filterHasHolder, filterIsChannelConfigured, filterIsChannelConfirmed, filterIsConfigured, filterCourseType, searchQuery, page, studentsRefresh]);
 
   useEffect(() => {
     let cancelled = false;
@@ -364,6 +366,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       if (filterIsChannelConfigured) params.set("isChannelConfigured", filterIsChannelConfigured);
       if (filterIsChannelConfirmed) params.set("isChannelConfirmed", filterIsChannelConfirmed);
       if (filterIsConfigured) params.set("isConfigured", filterIsConfigured);
+      if (filterCourseType) params.set("courseType", filterCourseType);
       if (searchQuery) params.set("search", searchQuery);
       // Get all results without pagination
       params.set("limit", "50000");
@@ -381,6 +384,7 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       nombre_completo: s.fullname,
       entidad: s.entity,
       universidad: s.universityShortName || s.entity,
+      tipo_curso: s.courseType || "",
       estado: STATE_LABELS[s.state]?.label || s.state,
       cliente_etecsa: s.isClient === null ? "" : s.isClient ? "Sí" : "No",
       titular: s.hasMobileSubscriptionsActive === null ? "" : s.hasMobileSubscriptionsActive ? "Sí" : "No",
@@ -792,9 +796,22 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
               <option value="false">✕ No Habilitado</option>
             </select>
           </div>
-          {(filterEntity || filterState || filterHasHolder || filterIsChannelConfigured || filterIsChannelConfirmed || filterIsConfigured || searchQuery) && (
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Tipo de Curso</label>
+            <select
+              value={filterCourseType}
+              onChange={(e) => { setFilterCourseType(e.target.value); setPage(1); }}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todos</option>
+              <option value="Curso Regular Diurno">Curso Regular Diurno</option>
+              <option value="Curso Por Encuentro">Curso Por Encuentro</option>
+              <option value="Enseñanza a Distancia">Enseñanza a Distancia</option>
+            </select>
+          </div>
+          {(filterEntity || filterState || filterHasHolder || filterIsChannelConfigured || filterIsChannelConfirmed || filterIsConfigured || filterCourseType || searchQuery) && (
             <button
-              onClick={() => { setFilterEntity(""); setFilterState(""); setFilterHasHolder(""); setFilterIsChannelConfigured(""); setFilterIsChannelConfirmed(""); setFilterIsConfigured(""); setSearchQuery(""); setPage(1); }}
+              onClick={() => { setFilterEntity(""); setFilterState(""); setFilterHasHolder(""); setFilterIsChannelConfigured(""); setFilterIsChannelConfirmed(""); setFilterIsConfigured(""); setFilterCourseType(""); setSearchQuery(""); setPage(1); }}
               className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Limpiar filtros
