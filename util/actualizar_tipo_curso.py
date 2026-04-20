@@ -14,8 +14,10 @@ from pathlib import Path
 
 # ========= Configuración =========
 DB_PATH = "local.db"
-EXCEL_PATH = "estudiantes_ces.xls"
+EXCEL_PATH = "listados/actualizar_tipocurso.xlsx"
 SHEET_NAME = 0  # 0 = primera hoja
+
+import datetime
 
 EXCEL_COL_DOCUMENT = "document"
 EXCEL_COL_TIPO_CURSO = "tipo_curso"
@@ -26,7 +28,13 @@ TIPO_CURSO_MAP = {
     "curso por encuentros": "Curso Por Encuentro",
     "curso por encuentro": "Curso Por Encuentro",
     "enseñanza a distancia": "Enseñanza a Distancia",
-    "ensenanza a distancia": "Enseñanza a Distancia",  # sin tilde
+    "ensenanza a distancia": "Enseñanza a Distancia",
+    "ccd": "Curso Regular Diurno",
+    "cce": "Curso Por Encuentro",
+    "ccpe": "Curso Por Encuentro",
+    "ced": "Enseñanza a Distancia",
+    "cpe": "Curso Por Encuentro",
+    "crd": "Curso Regular Diurno",
 }
 
 UPDATE_UPDATED_AT = True
@@ -128,11 +136,16 @@ def main():
         table = pick_table(conn)
         cur = conn.cursor()
 
-        # Contar cuántos registros se van a actualizar
+        # Contar cuántos registros se van a actualizar (en lotes para evitar el límite de variables SQL)
         documents_to_update = [row[0] for row in updates]
-        placeholders = ','.join('?' * len(documents_to_update))
-        cur.execute(f"SELECT COUNT(*) FROM {table} WHERE document IN ({placeholders})", documents_to_update)
-        matching_count = cur.fetchone()[0]
+        matching_count = 0
+        batch_size = 999
+        
+        for i in range(0, len(documents_to_update), batch_size):
+            batch = documents_to_update[i:i + batch_size]
+            placeholders = ','.join('?' * len(batch))
+            cur.execute(f"SELECT COUNT(*) FROM {table} WHERE document IN ({placeholders})", batch)
+            matching_count += cur.fetchone()[0]
         
         print(f"Estudiantes en la BD que coinciden con el Excel: {matching_count}")
         print(f"Estudiantes que NO están en la BD: {len(documents_to_update) - matching_count}")
@@ -160,6 +173,15 @@ def main():
         print(f"Filas actualizadas en la BD: {updated_count}")
         print(f"Coincidencias encontradas antes de actualizar: {matching_count}")
         print("\nListo!")
+
+        # 3) Renombrar Excel si fue exitoso
+        excel_file = Path(EXCEL_PATH)
+        if excel_file.exists():
+            date_prefix = datetime.datetime.now().strftime("%Y%m%d")
+            new_name = f"{date_prefix}_{excel_file.name}"
+            new_path = excel_file.parent / new_name
+            excel_file.rename(new_path)
+            print(f"Excel renombrado correctamente a: {new_path}")
 
     except Exception as e:
         conn.rollback()

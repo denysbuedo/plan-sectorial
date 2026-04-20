@@ -702,7 +702,8 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+        {/* Row 1: Main Search & Core Filters */}
         <div className="flex flex-wrap gap-4 items-end">
           {/* Search */}
           <div className="flex-1 min-w-[200px]">
@@ -726,9 +727,8 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Filtrar por Universidad</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Universidad</label>
             {userRole === "universidad" ? (
-              // Universidad role: locked to their own university
               <div className="border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-700 min-w-[200px]">
                 {universities.find((u) => u.code === userEntity)?.shortName || userEntity || "—"}
               </div>
@@ -748,18 +748,35 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
             )}
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Filtrar por Estado</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Estado</label>
             <select
               value={filterState}
               onChange={(e) => { setFilterState(e.target.value); setPage(1); }}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Todos los estados</option>
+              <option value="">Todos</option>
               <option value="active">Activo</option>
               <option value="baja">Baja</option>
               <option value="error">Error</option>
             </select>
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Tipo de Curso</label>
+            <select
+              value={filterCourseType}
+              onChange={(e) => { setFilterCourseType(e.target.value); setPage(1); }}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[180px]"
+            >
+              <option value="">Todos</option>
+              <option value="Curso Regular Diurno">Curso Regular Diurno</option>
+              <option value="Curso Por Encuentro">Curso Por Encuentro</option>
+              <option value="Enseñanza a Distancia">Enseñanza a Distancia</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Row 2: Secondary Filters */}
+        <div className="flex flex-wrap gap-4 items-end pt-2">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Titularidad</label>
             <select
@@ -773,15 +790,15 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Registro SIGENU</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">SIGENU</label>
             <select
               value={filterIsChannelConfirmed}
               onChange={(e) => { setFilterIsChannelConfirmed(e.target.value); setPage(1); }}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Todos</option>
-              <option value="true">✓ Registrado SIGENU</option>
-              <option value="false">✕ No Registrado SIGENU</option>
+              <option value="true">✓ Registrado</option>
+              <option value="false">✕ No Registrado</option>
             </select>
           </div>
           <div>
@@ -796,27 +813,17 @@ export default function StudentList({ userRole, userEntity }: StudentListProps) 
               <option value="false">✕ No Habilitado</option>
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Tipo de Curso</label>
-            <select
-              value={filterCourseType}
-              onChange={(e) => { setFilterCourseType(e.target.value); setPage(1); }}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Todos</option>
-              <option value="Curso Regular Diurno">Curso Regular Diurno</option>
-              <option value="Curso Por Encuentro">Curso Por Encuentro</option>
-              <option value="Enseñanza a Distancia">Enseñanza a Distancia</option>
-            </select>
+
+          <div className="flex-1 flex justify-end">
+            {(filterEntity || filterState || filterHasHolder || filterIsChannelConfigured || filterIsChannelConfirmed || filterIsConfigured || filterCourseType || searchQuery) && (
+              <button
+                onClick={() => { setFilterEntity(""); setFilterState(""); setFilterHasHolder(""); setFilterIsChannelConfigured(""); setFilterIsChannelConfirmed(""); setFilterIsConfigured(""); setFilterCourseType(""); setSearchQuery(""); setPage(1); }}
+                className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
           </div>
-          {(filterEntity || filterState || filterHasHolder || filterIsChannelConfigured || filterIsChannelConfirmed || filterIsConfigured || filterCourseType || searchQuery) && (
-            <button
-              onClick={() => { setFilterEntity(""); setFilterState(""); setFilterHasHolder(""); setFilterIsChannelConfigured(""); setFilterIsChannelConfirmed(""); setFilterIsConfigured(""); setFilterCourseType(""); setSearchQuery(""); setPage(1); }}
-              className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Limpiar filtros
-            </button>
-          )}
         </div>
       </div>
 
